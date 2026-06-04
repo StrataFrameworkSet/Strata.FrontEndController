@@ -1,0 +1,55 @@
+plugins {
+    id 'java-library'
+}
+
+sourceSets {
+    test.java.srcDirs = ['src/test/java']
+    test.resources.srcDirs = ['src/test/resources']
+    main.java.srcDirs = ['src/unused']
+}
+
+dependencies {
+    testImplementation project(':Components:Strata.FrontEndController.Client')
+    testImplementation(testFixtures(project(':Tests:Strata.FrontEndController.ServiceTest')))
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+}
+
+configurations {
+    testArtifacts
+}
+
+tasks.register('testJar', Jar) {
+    archiveClassifier = 'tests'
+    from sourceSets.test.output
+    from sourceSets.test.resources
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named("testJar").configure {
+    dependsOn testClasses
+}
+
+artifacts {
+    archives testJar
+    testArtifacts testJar
+}
+
+test {
+    useJUnitPlatform {
+        includeTags("CommitStage")
+    }
+
+    jvmArgs = [
+            '--add-opens=java.base/java.lang=ALL-UNNAMED',
+            '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+            '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+            '--add-opens=java.base/java.util.stream=ALL-UNNAMED',
+            '--add-opens=java.base/java.util=ALL-UNNAMED',
+            '--add-opens=java.base/java.nio=ALL-UNNAMED',
+            '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+            '--add-opens=java.base/java.io=ALL-UNNAMED',
+            '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
+            '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED']
+}

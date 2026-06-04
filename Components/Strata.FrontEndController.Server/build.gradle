@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+}
+
+sourceSets {
+    main.java.srcDirs = ['src/main/java','build/generated-java']
+    main.resources.srcDirs = ['src/main/resources','src/main/schema']
+    test.java.srcDirs = ['src/unused']
+    test.resources.srcDirs = ['src/unused']
+}
+
+
+apply plugin: 'maven-publish'
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        StrataFrontEndControllerServer(MavenPublication) {
+            artifactId = 'strata-frontendcontroller-server'
+            from components.java
+
+            artifact sourceJar {
+                //classifier "sources"
+            }
+
+            repositories {
+                maven {
+                    name "GitHubPackages"
+                    url "https://maven.pkg.github.com/StrataFrameworkSet/repository"
+                    credentials {
+                        username = "$System.env.REPOSITORY_USER"
+                        password = "$System.env.REPOSITORY_PASSWORD"
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    api project(":Components:Strata.FrontEndController.Service")
+    api "strata.server:strata-server-spring:$strata_server_version"
+    api "strata.outbox:strata-outbox-core:$strata_outbox_version"
+    api "org.springframework.boot:spring-boot-starter-security:$springboot_version"
+    api "org.springframework.security:spring-security-core:$spring_security_version"
+    api "org.postgresql:postgresql:$postgresql_version"
+    api "com.h2database:h2:$h2_version"
+    api "org.modelmapper:modelmapper:$modelmapper_version"
+}

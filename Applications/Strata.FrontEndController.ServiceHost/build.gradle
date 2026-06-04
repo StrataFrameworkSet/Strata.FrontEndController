@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id "com.google.cloud.tools.jib" version "3.4.2"
+}
+
+sourceSets {
+    main.java.srcDirs = ['src/main/java','.build/generated-java']
+    main.resources.srcDirs = ['src/main/resources','src/main/schema']
+    test.java.srcDirs = ['src/unused']
+    test.resources.srcDirs = ['src/unused']
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+dependencies {
+    implementation project(":Components:Strata.FrontEndController.Server")
+}
+
+jib {
+    from {
+        image = "amazoncorretto:23-alpine"
+        auth {
+            username = "$System.env.DOCKER_USER"
+            password = "$System.env.DOCKER_PASSWORD"
+        }
+    }
+    to {
+        image = "registry.gitlab.com/guitar-center/gl_merchandising-technology/applicationsystems/strata-frontendcontroller-servicehost"
+        tags = ["${version}","latest"]
+        auth {
+            username = "oauth2"
+            password = "$System.env.GITLAB_TOKEN"
+        }
+    }
+    container {
+        environment = [DEPLOY_ENV:"development",PROPERTIES_ENCRYPTION_KEY:""+"$System.env.PROPERTIES_ENCRYPTION_KEY"]
+        jvmFlags = ["-Xmx1024m"]
+        extraClasspath = [".build/libs/Strata.FrontEndController.ServiceHost-${version}.jar"]
+        mainClass = "strata.frontendcontroller.servicehost.main.FrontEndControllerServiceHost"
+        ports = ['8081']
+        format = 'OCI'
+    }
+}

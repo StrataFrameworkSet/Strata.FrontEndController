@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/Applications" />
+            <option value="$PROJECT_DIR$/Applications/Strata.FrontEndController.ServiceHost" />
+            <option value="$PROJECT_DIR$/Components" />
+            <option value="$PROJECT_DIR$/Components/Strata.FrontEndController.Client" />
+            <option value="$PROJECT_DIR$/Components/Strata.FrontEndController.Server" />
+            <option value="$PROJECT_DIR$/Components/Strata.FrontEndController.Service" />
+            <option value="$PROJECT_DIR$/Tests" />
+            <option value="$PROJECT_DIR$/Tests/Strata.FrontEndController.ClientTest" />
+            <option value="$PROJECT_DIR$/Tests/Strata.FrontEndController.ServerTest" />
+            <option value="$PROJECT_DIR$/Tests/Strata.FrontEndController.ServiceTest" />
+            <option value="$PROJECT_DIR$/Tests/Strata.FrontEndController.TestSuite" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>

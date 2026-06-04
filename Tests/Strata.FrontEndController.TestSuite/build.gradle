@@ -1,0 +1,133 @@
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+    id "com.google.cloud.tools.jib" version "3.4.2"
+}
+
+sourceSets {
+    test.java.srcDirs = ['src/test/java']
+    test.resources.srcDirs = ['src/test/resources']
+    main.java.srcDirs = ['src/unused']
+}
+
+apply plugin: 'maven-publish'
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+task suiteJar(type:Jar) {
+    from sourceSets.main.output
+    from sourceSets.test.output
+}
+
+tasks.named('assemble').configure {
+    dependsOn 'jar'
+    dependsOn 'sourceJar'
+    dependsOn 'suiteJar'
+}
+
+dependencies {
+    api project(':Components:Strata.FrontEndController.Service')
+    api project(':Components:Strata.FrontEndController.Server')
+    api project(':Components:Strata.FrontEndController.Client')
+    implementation project(path: ':Tests:Strata.FrontEndController.ServiceTest', configuration: 'testArtifacts')
+    implementation project(path: ':Tests:Strata.FrontEndController.ServerTest', configuration: 'testArtifacts')
+    implementation project(path: ':Tests:Strata.FrontEndController.ClientTest', configuration: 'testArtifacts')
+     implementation 'org.slf4j:slf4j-reload4j:2.0.17'
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    implementation "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+    implementation "org.junit.platform:junit-platform-launcher:$junit_platform_version"
+}
+
+test {
+    useJUnitPlatform {
+        includeTags("CommitStage")
+    }
+}
+
+publishing {
+    publications {
+        StrataFrontEndControllerTestSuite(MavenPublication) {
+            artifactId = 'strata-frontendcontroller-testsuite'
+            from components.java
+
+            repositories {
+                maven {
+                    name "GitHubPackages"
+                    url "https://maven.pkg.github.com/StrataFrameworkSet/repository"
+                    credentials {
+                        username = "$System.env.REPOSITORY_USER"
+                        password = "$System.env.REPOSITORY_PASSWORD"
+                    }
+                }
+            }
+        }
+    }
+}
+
+jib {
+    from {
+        image = "amazoncorretto:23-alpine"
+        auth {
+            username = "$System.env.DOCKER_USER"
+            password = "$System.env.DOCKER_PASSWORD"
+        }
+    }
+    to {
+        image = "ghcr.io/johnliebenau/strata/strata-foundation-testsuite"
+        tags = ["${version}","latest"]
+        auth {
+            username = "$System.env.REPOSITORY_USER"
+            password = "$System.env.REPOSITORY_PASSWORD"
+        }
+    }
+    containerizingMode = 'packaged'
+    container {
+        environment = [DEPLOY_ENV:"test",PROPERTIES_ENCRYPTION_KEY:"$System.env.PROPERTIES_ENCRYPTION_KEY".toString()]
+        jvmFlags = [
+                '-Xmx1024m',
+                '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+                '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+                '--add-opens=java.base/java.util.stream=ALL-UNNAMED',
+                '--add-opens=java.base/java.util=ALL-UNNAMED',
+                '--add-opens=java.base/java.time=ALL-UNNAMED',
+                '--add-opens=java.base/java.nio=ALL-UNNAMED',
+                '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                '--add-opens=java.base/java.io=ALL-UNNAMED',
+                '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
+                '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
+                '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
+                '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED']
+
+        mainClass = "strata.foundation.core.testrunner.JunitTestRunner"
+        args = ['--tags=CommitStage','--package=strata.frontendcontroller']
+        ports = ['8082']
+        format = 'OCI'
+    }
+}
+
+task printJibClasspath {
+    doLast {
+        println "=== Complete JIB Classpath ==="
+        // Main classpath that Jib will use
+        def classpath = new HashSet<String>()
+
+        // Add runtime dependencies
+        configurations.runtimeClasspath.each {
+            classpath.add(it.toString())
+        }
+
+        // Add explicitly configured extra classpath entries
+        classpath.addAll(jib.container.extraClasspath)
+
+        // Print the complete classpath
+        classpath.each { println it }
+    }
+}
+
+tasks.named('build') {
+    finalizedBy('jib')
+}

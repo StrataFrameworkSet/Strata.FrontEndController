@@ -22,15 +22,15 @@ class FrontEndControllerService
     implements ITransactionalFrontEndControllerService
 {
     private final IFrontEndControllerRepository repository;
-    private final ModelMapper                   mapper;
-    private final Logger                        logger;
+    private final ModelMapper mapper;
+    private final Logger logger;
 
     @Inject
     public FrontEndControllerService(IFrontEndControllerRepository r,ModelMapper m)
     {
         repository = r;
-        mapper     = m;
-        logger     = LogManager.getLogger(FrontEndControllerService.class);
+        mapper = m;
+        logger = LogManager.getLogger(FrontEndControllerService.class);
     }
 
     @Override
@@ -42,6 +42,7 @@ class FrontEndControllerService
             CompletableFuture
                 .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
+                .thenApply(context -> handleInput(context))
                 .thenApply(context -> buildReply(context))
                 .exceptionally(exception -> buildReply(exception,request));
     }
@@ -55,6 +56,7 @@ class FrontEndControllerService
             CompletableFuture
                 .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
+                .thenApply(context -> getOutput(context))
                 .thenApply(context -> buildReply(context))
                 .exceptionally(exception -> buildReply(exception,request));
     }
@@ -96,6 +98,18 @@ class FrontEndControllerService
     {
         logger.debug("<getOutput> mapToContext({})",request.getRequestId());
         return new GetOutputContext(request);
+    }
+
+    protected HandleInputContext
+    handleInput(HandleInputContext context)
+    {
+        return context;
+    }
+
+    protected GetOutputContext
+    getOutput(GetOutputContext context)
+    {
+        return context;
     }
 
     private HandleInputReply

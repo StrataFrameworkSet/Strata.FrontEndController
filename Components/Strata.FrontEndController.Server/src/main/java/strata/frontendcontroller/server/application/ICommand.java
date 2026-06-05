@@ -1,0 +1,16 @@
+//////////////////////////////////////////////////////////////////////////////
+// ICommand.java
+//////////////////////////////////////////////////////////////////////////////
+
+package strata.frontendcontroller.server.application;
+
+import strata.frontendcontroller.service.requestreply.FrontEndInput;
+import strata.frontendcontroller.service.requestreply.FrontEndOutput;
+
+import java.util.function.Function;
+
+public
+interface ICommand
+    extends Function<FrontEndInput,FrontEndOutput> {}
+
+//////////////////////////////////////////////////////////////////////////////

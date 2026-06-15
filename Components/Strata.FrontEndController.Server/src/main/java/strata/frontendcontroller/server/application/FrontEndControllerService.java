@@ -4,7 +4,6 @@
 
 package strata.frontendcontroller.server.application;
 
-import strata.frontendcontroller.server.domain.IFrontEndControllerRepository;
 import strata.frontendcontroller.service.requestreply.*;
 import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
@@ -21,14 +20,14 @@ public
 class FrontEndControllerService
     implements ITransactionalFrontEndControllerService
 {
-    private final IFrontEndControllerRepository repository;
-    private final ModelMapper mapper;
-    private final Logger logger;
+    private final IRequestProcessor processor;
+    private final ModelMapper       mapper;
+    private final Logger            logger;
 
     @Inject
-    public FrontEndControllerService(IFrontEndControllerRepository r,ModelMapper m)
+    public FrontEndControllerService(IRequestProcessor p,ModelMapper m)
     {
-        repository = r;
+        processor = p;
         mapper = m;
         logger = LogManager.getLogger(FrontEndControllerService.class);
     }
@@ -103,13 +102,15 @@ class FrontEndControllerService
     protected HandleInputContext
     handleInput(HandleInputContext context)
     {
-        return context;
+        logger.debug("handleInput({})",context);
+        return context.setOutput(processor.handleInput(context.getRequest()));
     }
 
     protected GetOutputContext
     getOutput(GetOutputContext context)
     {
-        return context;
+        logger.debug("getOutput({})",context);
+        return context.setOutput(processor.getOutput(context.getRequest()));
     }
 
     private HandleInputReply

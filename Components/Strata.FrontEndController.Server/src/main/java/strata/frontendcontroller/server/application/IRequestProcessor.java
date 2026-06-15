@@ -1,20 +1,21 @@
 //////////////////////////////////////////////////////////////////////////////
-// ICommandProcessor.java
+// IRequestProcessor.java
 //////////////////////////////////////////////////////////////////////////////
 
 package strata.frontendcontroller.server.application;
 
-import strata.frontendcontroller.service.requestreply.FrontEndInput;
 import strata.frontendcontroller.service.requestreply.FrontEndOutput;
+import strata.frontendcontroller.service.requestreply.GetOutputRequest;
+import strata.frontendcontroller.service.requestreply.HandleInputRequest;
 
 public
-interface ICommandProcessor
+interface IRequestProcessor
 {
     FrontEndOutput
-    process(FrontEndInput input);
+    handleInput(HandleInputRequest request);
 
     FrontEndOutput
-    getOutput(String key);
+    getOutput(GetOutputRequest request);
 }
 
 //////////////////////////////////////////////////////////////////////////////

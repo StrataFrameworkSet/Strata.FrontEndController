@@ -7,6 +7,7 @@ package strata.frontendcontroller.service.requestreply;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
+import java.security.Key;
 import java.util.Optional;
 
 public abstract
@@ -71,13 +72,7 @@ class FrontEndInput
     public String
     getKey()
     {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(source);
-        getDestination().ifPresent(dest -> builder.append('.').append(dest));
-        builder.append('.').append(command);
-
-        return builder.toString();
+        return KeyBuilder.build(source,destination,command);
     }
 }
 

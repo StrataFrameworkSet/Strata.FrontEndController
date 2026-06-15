@@ -6,6 +6,7 @@ package strata.frontendcontroller.server.application;
 
 import strata.frontendcontroller.service.requestreply.FrontEndOutput;
 import strata.frontendcontroller.service.requestreply.GetOutputRequest;
+import strata.frontendcontroller.service.requestreply.KeyBuilder;
 
 public
 class GetOutputContext
@@ -38,6 +39,12 @@ class GetOutputContext
 
     public String
     getDestination() { return request.getDestination(); }
+
+    public String
+    getKey()
+    {
+        return KeyBuilder.build(getSource(),getDestination(),null);
+    }
 
     public FrontEndOutput
     getOutput() { return output; }

@@ -103,14 +103,14 @@ class FrontEndControllerService
     handleInput(HandleInputContext context)
     {
         logger.debug("handleInput({})",context);
-        return context.setOutput(processor.handleInput(context.getRequest()));
+        return context.setOutput(processor.process(context.getRequest()));
     }
 
     protected GetOutputContext
     getOutput(GetOutputContext context)
     {
         logger.debug("getOutput({})",context);
-        return context.setOutput(processor.getOutput(context.getRequest()));
+        return context.setOutput(processor.process(context.getRequest()));
     }
 
     private HandleInputReply

@@ -11,6 +11,6 @@ import java.util.function.Function;
 
 public
 interface IGetOutputAction
-    extends IFrontEndAction,Function<GetOutputRequest,FrontEndOutput> {}
+    extends IProcessAction,Function<GetOutputRequest,FrontEndOutput> {}
 
 //////////////////////////////////////////////////////////////////////////////

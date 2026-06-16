@@ -12,10 +12,10 @@ public
 interface IRequestProcessor
 {
     FrontEndOutput
-    handleInput(HandleInputRequest request);
+    process(HandleInputRequest request);
 
     FrontEndOutput
-    getOutput(GetOutputRequest request);
+    process(GetOutputRequest request);
 }
 
 //////////////////////////////////////////////////////////////////////////////

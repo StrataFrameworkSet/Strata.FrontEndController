@@ -11,6 +11,6 @@ import java.util.function.Function;
 
 public
 interface IHandleInputAction
-    extends IFrontEndAction,Function<HandleInputRequest,FrontEndOutput> {}
+    extends IProcessAction,Function<HandleInputRequest,FrontEndOutput> {}
 
 //////////////////////////////////////////////////////////////////////////////

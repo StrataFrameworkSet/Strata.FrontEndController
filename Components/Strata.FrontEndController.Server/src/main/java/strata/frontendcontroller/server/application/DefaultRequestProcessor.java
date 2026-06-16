@@ -24,7 +24,7 @@ class DefaultRequestProcessor
     }
 
     protected
-    DefaultRequestProcessor(Map<String,IFrontEndAction> actions)
+    DefaultRequestProcessor(Map<String,IProcessAction> actions)
     {
         this.handleInputActions = filterActionsByType(IHandleInputAction.class,actions);
         this.getOutputActions = filterActionsByType(IGetOutputAction.class,actions);
@@ -32,14 +32,14 @@ class DefaultRequestProcessor
 
     @Override
     public FrontEndOutput
-    handleInput(HandleInputRequest request)
+    process(HandleInputRequest request)
     {
         return getHandleInputAction(getKey(request)).apply(request);
     }
 
     @Override
     public FrontEndOutput
-    getOutput(GetOutputRequest request)
+    process(GetOutputRequest request)
     {
         return getGetOutputAction(getKey(request)).apply(request);
     }
@@ -76,8 +76,8 @@ class DefaultRequestProcessor
         return "";
     }
 
-    private static <T extends IFrontEndAction> Map<String,T>
-    filterActionsByType(Class<T> type,Map<String,IFrontEndAction> actions)
+    private static <T extends IProcessAction> Map<String,T>
+    filterActionsByType(Class<T> type,Map<String,IProcessAction> actions)
     {
         return
             actions

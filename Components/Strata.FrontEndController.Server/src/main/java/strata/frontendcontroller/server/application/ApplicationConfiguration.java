@@ -4,7 +4,6 @@
 
 package strata.frontendcontroller.server.application;
 
-import strata.frontendcontroller.server.domain.IFrontEndControllerRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,10 +20,10 @@ class ApplicationConfiguration
     @RequestScope
     public ITransactionalFrontEndControllerService
     frontendcontrollerService(
-        IFrontEndControllerRepository repository,
-        ModelMapper                   mapper)
+        IRequestProcessor processor,
+        ModelMapper       mapper)
     {
-        return new FrontEndControllerService(repository,mapper);
+        return new FrontEndControllerService(processor,mapper);
     }
 
     @Bean

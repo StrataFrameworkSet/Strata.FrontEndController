@@ -17,8 +17,8 @@ public
 class FrontEndControllerServiceServerTest
     extends FrontEndControllerServiceTest
 {
-    private static ApplicationContext context;
-    private IFrontEndControllerService subject;
+    private static ApplicationContext         context;
+    private        IFrontEndControllerService subject;
 
     @BeforeAll
     public static void

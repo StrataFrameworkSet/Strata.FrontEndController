@@ -13,16 +13,16 @@ class FrontEndOutput
 {
     private Long   userId;
     private String source;
-    private String destination;
     private String command;
+    private String destination;
 
     protected
     FrontEndOutput()
     {
         userId      = null;
         source      = null;
-        destination = null;
         command     = null;
+        destination = null;
     }
 
     public FrontEndOutput
@@ -40,16 +40,16 @@ class FrontEndOutput
     }
 
     public FrontEndOutput
-    setDestination(String dest)
+    setCommand(String cmd)
     {
-        destination = dest;
+        command = cmd;
         return this;
     }
 
     public FrontEndOutput
-    setCommand(String cmd)
+    setDestination(String dest)
     {
-        command = cmd;
+        destination = dest;
         return this;
     }
 
@@ -59,11 +59,11 @@ class FrontEndOutput
     public String
     getSource() { return source; }
 
-    public String
-    getDestination() { return destination; }
-
     public Optional<String>
     getCommand() { return Optional.ofNullable(command); }
+
+    public String
+    getDestination() { return destination; }
 }
 
 //////////////////////////////////////////////////////////////////////////////

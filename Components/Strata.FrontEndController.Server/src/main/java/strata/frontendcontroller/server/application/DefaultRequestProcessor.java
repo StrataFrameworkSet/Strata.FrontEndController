@@ -9,6 +9,8 @@ import strata.frontendcontroller.service.requestreply.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public abstract
 class DefaultRequestProcessor
@@ -31,14 +33,14 @@ class DefaultRequestProcessor
     }
 
     @Override
-    public FrontEndOutput
+    public CompletionStage<FrontEndOutput>
     process(HandleInputRequest request)
     {
         return getHandleInputAction(getKey(request)).apply(request);
     }
 
     @Override
-    public FrontEndOutput
+    public CompletionStage<FrontEndOutput>
     process(GetOutputRequest request)
     {
         return getGetOutputAction(getKey(request)).apply(request);
@@ -51,7 +53,8 @@ class DefaultRequestProcessor
             handleInputActions.containsKey(key)
                 ? handleInputActions.get(key)
                 : (HandleInputRequest r) ->
-                    { throw new IllegalArgumentException("No action found for key: " + key); };
+                    CompletableFuture.failedFuture(
+                        new IllegalArgumentException("No action found for key: " + key));
     }
 
     protected IGetOutputAction
@@ -61,7 +64,8 @@ class DefaultRequestProcessor
             getOutputActions.containsKey(key)
                 ? getOutputActions.get(key)
                 : (GetOutputRequest r) ->
-                    { throw new IllegalArgumentException("No action found for key: " + key); };
+                    CompletableFuture.failedFuture(
+                        new IllegalArgumentException("No action found for key: " + key));
     }
 
     private static <R extends AbstractServiceRequest> String
@@ -71,7 +75,7 @@ class DefaultRequestProcessor
             return hir.getInput().getKey();
 
         if (request instanceof GetOutputRequest gor)
-            return KeyBuilder.build(gor.getSource(),gor.getDestination(),null);
+            return KeyBuilder.build(gor.getSource(),gor.getCommand(),gor.getDestination());
 
         return "";
     }

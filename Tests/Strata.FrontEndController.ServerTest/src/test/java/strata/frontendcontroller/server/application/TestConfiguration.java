@@ -18,6 +18,7 @@ import strata.foundation.core.inject.ApplicationConfigurationProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Configuration
 @EnableTransactionManagement
@@ -52,7 +53,7 @@ class TestConfiguration
     requestProcessor()
     {
         Map<String,IProcessAction> actions = new HashMap<>();
-        IGetOutputAction action = (GetOutputRequest r) -> new TestOutput();
+        IGetOutputAction action = (GetOutputRequest r) -> CompletableFuture.completedFuture(new TestOutput());
 
         actions.put("test-source",action);
         return new TestRequestProcessor(actions);

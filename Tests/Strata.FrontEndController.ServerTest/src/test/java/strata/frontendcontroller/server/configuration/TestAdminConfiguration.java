@@ -16,6 +16,7 @@ import strata.frontendcontroller.service.requestreply.GetOutputRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Configuration
 @PropertySource("classpath:test.properties")
@@ -31,7 +32,7 @@ class TestAdminConfiguration
     adminRequestProcessor()
     {
         Map<String,IProcessAction> actions = new HashMap<>();
-        IGetOutputAction action = (GetOutputRequest r) -> new TestOutput();
+        IGetOutputAction action = (GetOutputRequest r) -> CompletableFuture.completedFuture(new TestOutput());
 
         actions.put("test-source",action);
         return new TestRequestProcessor(actions);

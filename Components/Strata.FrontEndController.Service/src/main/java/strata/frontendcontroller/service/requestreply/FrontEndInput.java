@@ -7,7 +7,6 @@ package strata.frontendcontroller.service.requestreply;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
-import java.security.Key;
 import java.util.Optional;
 
 public abstract
@@ -16,16 +15,16 @@ class FrontEndInput
 {
     private Long   userId;
     private String source;
-    private String destination;
     private String command;
+    private String destination;
 
     protected
     FrontEndInput()
     {
         userId      = null;
         source      = null;
-        destination = null;
         command     = null;
+        destination = null;
     }
 
     public FrontEndInput
@@ -43,16 +42,16 @@ class FrontEndInput
     }
 
     public FrontEndInput
-    setDestination(String dest)
+    setCommand(String cmd)
     {
-        destination = dest;
+        command = cmd;
         return this;
     }
 
     public FrontEndInput
-    setCommand(String cmd)
+    setDestination(String dest)
     {
-        command = cmd;
+        destination = dest;
         return this;
     }
 
@@ -62,17 +61,17 @@ class FrontEndInput
     public String
     getSource() { return source; }
 
-    public Optional<String>
-    getDestination() { return Optional.ofNullable(destination); }
-
     public String
     getCommand() { return command; }
+
+    public Optional<String>
+    getDestination() { return Optional.ofNullable(destination); }
 
     @JsonIgnore
     public String
     getKey()
     {
-        return KeyBuilder.build(source,destination,command);
+        return KeyBuilder.build(source,command,destination);
     }
 }
 

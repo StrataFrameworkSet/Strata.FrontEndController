@@ -71,7 +71,9 @@ class AdminFrontEndControllerConfigurationTest
         assertDoesNotThrow(
             () -> processor.process(
                 new GetOutputRequest()
-                    .setSource("test-source")));
+                    .setSource("test-source"))
+                .toCompletableFuture()
+                .join());
     }
 
     @Test

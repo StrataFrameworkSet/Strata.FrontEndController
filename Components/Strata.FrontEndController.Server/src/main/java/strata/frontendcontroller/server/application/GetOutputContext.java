@@ -38,12 +38,15 @@ class GetOutputContext
     getSource() { return request.getSource(); }
 
     public String
+    getCommand() { return request.getCommand(); }
+
+    public String
     getDestination() { return request.getDestination(); }
 
     public String
     getKey()
     {
-        return KeyBuilder.build(getSource(),getDestination(),null);
+        return KeyBuilder.build(getSource(),getCommand(),getDestination());
     }
 
     public FrontEndOutput

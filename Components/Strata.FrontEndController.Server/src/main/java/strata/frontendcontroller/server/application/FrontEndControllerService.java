@@ -42,7 +42,7 @@ class FrontEndControllerService
             CompletableFuture
                 .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
-                .thenApply(context -> handleInput(context))
+                .thenCompose(context -> handleInput(context))
                 .thenApply(context -> buildReply(context))
                 .exceptionally(exception -> buildReply(exception,request));
     }
@@ -56,7 +56,7 @@ class FrontEndControllerService
             CompletableFuture
                 .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
-                .thenApply(context -> getOutput(context))
+                .thenCompose(context -> getOutput(context))
                 .thenApply(context -> buildReply(context))
                 .exceptionally(exception -> buildReply(exception,request));
     }
@@ -100,18 +100,24 @@ class FrontEndControllerService
         return new GetOutputContext(request);
     }
 
-    protected HandleInputContext
+    protected CompletionStage<HandleInputContext>
     handleInput(HandleInputContext context)
     {
         logger.debug("handleInput({})",context);
-        return context.setOutput(processor.process(context.getRequest()));
+        return
+            processor
+                .process(context.getRequest())
+                .thenApply(output -> context.setOutput(output));
     }
 
-    protected GetOutputContext
+    protected CompletionStage<GetOutputContext>
     getOutput(GetOutputContext context)
     {
         logger.debug("getOutput({})",context);
-        return context.setOutput(processor.process(context.getRequest()));
+        return
+            processor
+                .process(context.getRequest())
+                .thenApply(output -> context.setOutput(output));
     }
 
     private HandleInputReply

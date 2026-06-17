@@ -9,7 +9,7 @@ import java.util.Optional;
 public
 class KeyBuilder 
 {
-    public static final String KEY_SEPARATOR = ".";
+    public static final String KEY_SEPARATOR = "->";
 
     public
     KeyBuilder() {}
@@ -17,14 +17,14 @@ class KeyBuilder
     public String
     build(
         Optional<String> source,
-        Optional<String> destination,
-        Optional<String> command)
+        Optional<String> command,
+        Optional<String> destination)
     {
         StringBuilder builder = new StringBuilder();
 
         source.ifPresent(s -> append(builder,s));
-        destination.ifPresent(d -> append(builder,d));
         command.ifPresent(c -> append(builder,c));
+        destination.ifPresent(d -> append(builder,d));
         return builder.toString();
     }
 
@@ -38,14 +38,14 @@ class KeyBuilder
     }
 
     public static String
-    build(String source,String destination,String command)
+    build(String source,String command,String destination)
     {
         return
             new KeyBuilder()
                 .build(
                     Optional.ofNullable(source),
-                    Optional.ofNullable(destination),
-                    Optional.ofNullable(command));
+                    Optional.ofNullable(command),
+                    Optional.ofNullable(destination));
     }
 }
 

@@ -10,6 +10,8 @@ import strata.frontendcontroller.service.requestreply.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,11 +33,11 @@ class DefaultRequestProcessorTest
             createGetOutputRequest("src","dest");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(handleRequest));
+            CompletionException.class,
+            () -> processor.process(handleRequest).toCompletableFuture().join());
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(getRequest));
+            CompletionException.class,
+            () -> processor.process(getRequest).toCompletableFuture().join());
     }
 
     @Test
@@ -43,10 +45,10 @@ class DefaultRequestProcessorTest
     testConstructorWithHandleInputActionsOnly()
     {
         FrontEndOutput             expected = createOutput("handleOutput");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("src.dest.cmd",action);
+        actions.put("src->cmd->dest",action);
 
         IRequestProcessor processor = createProcessor(actions);
 
@@ -56,10 +58,10 @@ class DefaultRequestProcessorTest
         GetOutputRequest getRequest =
             createGetOutputRequest("src","dest");
 
-        assertSame(expected,processor.process(handleRequest));
+        assertSame(expected,processor.process(handleRequest).toCompletableFuture().join());
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(getRequest));
+            CompletionException.class,
+            () -> processor.process(getRequest).toCompletableFuture().join());
     }
 
     @Test
@@ -67,10 +69,10 @@ class DefaultRequestProcessorTest
     testConstructorWithGetOutputActionsOnly()
     {
         FrontEndOutput             expected = createOutput("getOutput");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("src.dest",action);
+        actions.put("src->dest",action);
 
         IRequestProcessor processor = createProcessor(actions);
 
@@ -80,10 +82,10 @@ class DefaultRequestProcessorTest
         HandleInputRequest handleRequest =
             createHandleInputRequest("src","dest",null);
 
-        assertSame(expected,processor.process(getRequest));
+        assertSame(expected,processor.process(getRequest).toCompletableFuture().join());
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(handleRequest));
+            CompletionException.class,
+            () -> processor.process(handleRequest).toCompletableFuture().join());
     }
 
     @Test
@@ -92,21 +94,21 @@ class DefaultRequestProcessorTest
     {
         FrontEndOutput             handleExpected = createOutput("handleOutput");
         FrontEndOutput             getExpected    = createOutput("getOutput");
-        IHandleInputAction         handleAction   = (HandleInputRequest r) -> handleExpected;
-        IGetOutputAction           getAction      = (GetOutputRequest r) -> getExpected;
+        IHandleInputAction         handleAction   = (HandleInputRequest r) -> CompletableFuture.completedFuture(handleExpected);
+        IGetOutputAction           getAction      = (GetOutputRequest r) -> CompletableFuture.completedFuture(getExpected);
         Map<String,IProcessAction> actions        = new HashMap<>();
 
-        actions.put("src.dest.cmd",handleAction);
-        actions.put("src.dest",getAction);
+        actions.put("src->cmd->dest",handleAction);
+        actions.put("src->dest",getAction);
 
         IRequestProcessor processor = createProcessor(actions);
 
         assertSame(
             handleExpected,
-            processor.process(createHandleInputRequest("src","dest","cmd")));
+            processor.process(createHandleInputRequest("src","dest","cmd")).toCompletableFuture().join());
         assertSame(
             getExpected,
-            processor.process(createGetOutputRequest("src","dest")));
+            processor.process(createGetOutputRequest("src","dest")).toCompletableFuture().join());
     }
 
     @Test
@@ -122,11 +124,11 @@ class DefaultRequestProcessorTest
             createGetOutputRequest("src","dest");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(handleRequest));
+            CompletionException.class,
+            () -> processor.process(handleRequest).toCompletableFuture().join());
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(getRequest));
+            CompletionException.class,
+            () -> processor.process(getRequest).toCompletableFuture().join());
     }
 
     @Test
@@ -134,14 +136,14 @@ class DefaultRequestProcessorTest
     testProcessHandleInputDispatchesByKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("sourceA.destA.cmdA",action);
+        actions.put("sourceA->cmdA->destA",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createHandleInputRequest("sourceA","destA","cmdA"));
+            processor.process(createHandleInputRequest("sourceA","destA","cmdA")).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -151,14 +153,14 @@ class DefaultRequestProcessorTest
     testProcessHandleInputWithSourceOnlyKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
         actions.put("sourceA",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createHandleInputRequest("sourceA",null,null));
+            processor.process(createHandleInputRequest("sourceA",null,null)).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -168,14 +170,14 @@ class DefaultRequestProcessorTest
     testProcessHandleInputWithSourceAndDestinationKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("sourceA.destA",action);
+        actions.put("sourceA->destA",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createHandleInputRequest("sourceA","destA",null));
+            processor.process(createHandleInputRequest("sourceA","destA",null)).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -186,16 +188,16 @@ class DefaultRequestProcessorTest
     {
         FrontEndOutput             output1 = createOutput("first");
         FrontEndOutput             output2 = createOutput("second");
-        IHandleInputAction         action1 = (HandleInputRequest r) -> output1;
-        IHandleInputAction         action2 = (HandleInputRequest r) -> output2;
+        IHandleInputAction         action1 = (HandleInputRequest r) -> CompletableFuture.completedFuture(output1);
+        IHandleInputAction         action2 = (HandleInputRequest r) -> CompletableFuture.completedFuture(output2);
         Map<String,IProcessAction> actions = new HashMap<>();
 
-        actions.put("a.b.c",action1);
-        actions.put("x.y.z",action2);
+        actions.put("a->c->b",action1);
+        actions.put("x->z->y",action2);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createHandleInputRequest("x","y","z"));
+            processor.process(createHandleInputRequest("x","y","z")).toCompletableFuture().join();
 
         assertSame(output2,actual);
     }
@@ -209,16 +211,16 @@ class DefaultRequestProcessorTest
         IHandleInputAction                  action   = (HandleInputRequest r) ->
         {
             captured.set(r);
-            return expected;
+            return CompletableFuture.completedFuture(expected);
         };
         Map<String,IProcessAction> actions = new HashMap<>();
 
-        actions.put("src.dest.cmd",action);
+        actions.put("src->cmd->dest",action);
 
         IRequestProcessor  processor = createProcessor(actions);
         HandleInputRequest request   = createHandleInputRequest("src","dest","cmd");
 
-        processor.process(request);
+        processor.process(request).toCompletableFuture().join();
 
         assertSame(request,captured.get());
     }
@@ -228,19 +230,19 @@ class DefaultRequestProcessorTest
     testProcessHandleInputThrowsForUnregisteredKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("a.b.c",action);
+        actions.put("a->c->b",action);
 
         IRequestProcessor  processor = createProcessor(actions);
         HandleInputRequest request   = createHandleInputRequest("x","y","z");
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+        CompletionException exception = assertThrows(
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
 
-        assertTrue(exception.getMessage().contains("No action found for key: x.y.z"));
+        assertTrue(exception.getCause().getMessage().contains("No action found for key: x->z->y"));
     }
 
     @Test
@@ -251,8 +253,8 @@ class DefaultRequestProcessorTest
         HandleInputRequest request   = createHandleInputRequest("a","b","c");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
     }
 
     @Test
@@ -260,14 +262,14 @@ class DefaultRequestProcessorTest
     testProcessGetOutputDispatchesByKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("sourceA.destA",action);
+        actions.put("sourceA->destA",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest("sourceA","destA"));
+            processor.process(createGetOutputRequest("sourceA","destA")).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -277,14 +279,14 @@ class DefaultRequestProcessorTest
     testProcessGetOutputWithSourceOnlyKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
         actions.put("sourceA",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest("sourceA",null));
+            processor.process(createGetOutputRequest("sourceA",null)).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -295,16 +297,16 @@ class DefaultRequestProcessorTest
     {
         FrontEndOutput             output1 = createOutput("first");
         FrontEndOutput             output2 = createOutput("second");
-        IGetOutputAction           action1 = (GetOutputRequest r) -> output1;
-        IGetOutputAction           action2 = (GetOutputRequest r) -> output2;
+        IGetOutputAction           action1 = (GetOutputRequest r) -> CompletableFuture.completedFuture(output1);
+        IGetOutputAction           action2 = (GetOutputRequest r) -> CompletableFuture.completedFuture(output2);
         Map<String,IProcessAction> actions = new HashMap<>();
 
-        actions.put("a.b",action1);
-        actions.put("x.y",action2);
+        actions.put("a->b",action1);
+        actions.put("x->y",action2);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest("x","y"));
+            processor.process(createGetOutputRequest("x","y")).toCompletableFuture().join();
 
         assertSame(output2,actual);
     }
@@ -318,16 +320,16 @@ class DefaultRequestProcessorTest
         IGetOutputAction                  action   = (GetOutputRequest r) ->
         {
             captured.set(r);
-            return expected;
+            return CompletableFuture.completedFuture(expected);
         };
         Map<String,IProcessAction> actions = new HashMap<>();
 
-        actions.put("src.dest",action);
+        actions.put("src->dest",action);
 
         IRequestProcessor processor = createProcessor(actions);
         GetOutputRequest  request   = createGetOutputRequest("src","dest");
 
-        processor.process(request);
+        processor.process(request).toCompletableFuture().join();
 
         assertSame(request,captured.get());
     }
@@ -337,19 +339,19 @@ class DefaultRequestProcessorTest
     testProcessGetOutputThrowsForUnregisteredKey()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("a.b",action);
+        actions.put("a->b",action);
 
         IRequestProcessor processor = createProcessor(actions);
         GetOutputRequest  request   = createGetOutputRequest("x","y");
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+        CompletionException exception = assertThrows(
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
 
-        assertTrue(exception.getMessage().contains("No action found for key: x.y"));
+        assertTrue(exception.getCause().getMessage().contains("No action found for key: x->y"));
     }
 
     @Test
@@ -360,8 +362,8 @@ class DefaultRequestProcessorTest
         GetOutputRequest  request   = createGetOutputRequest("a","b");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
     }
 
     @Test
@@ -369,17 +371,17 @@ class DefaultRequestProcessorTest
     testHandleInputActionNotRoutedToGetOutput()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("src.dest",action);
+        actions.put("src->dest",action);
 
         IRequestProcessor processor = createProcessor(actions);
         GetOutputRequest  request   = createGetOutputRequest("src","dest");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
     }
 
     @Test
@@ -387,17 +389,17 @@ class DefaultRequestProcessorTest
     testGetOutputActionNotRoutedToHandleInput()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("src.dest.cmd",action);
+        actions.put("src->cmd->dest",action);
 
         IRequestProcessor processor = createProcessor(actions);
         HandleInputRequest request  = createHandleInputRequest("src","dest","cmd");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> processor.process(request));
+            CompletionException.class,
+            () -> processor.process(request).toCompletableFuture().join());
     }
 
     @Test
@@ -406,37 +408,37 @@ class DefaultRequestProcessorTest
     {
         FrontEndOutput             handleExpected = createOutput("handleResult");
         FrontEndOutput             getExpected    = createOutput("getResult");
-        IHandleInputAction         handleAction   = (HandleInputRequest r) -> handleExpected;
-        IGetOutputAction           getAction      = (GetOutputRequest r) -> getExpected;
+        IHandleInputAction         handleAction   = (HandleInputRequest r) -> CompletableFuture.completedFuture(handleExpected);
+        IGetOutputAction           getAction      = (GetOutputRequest r) -> CompletableFuture.completedFuture(getExpected);
         Map<String,IProcessAction> actions        = new HashMap<>();
 
-        actions.put("src.dest",handleAction);
-        actions.put("src.dest",getAction);
+        actions.put("src->dest",handleAction);
+        actions.put("src->dest",getAction);
 
         IRequestProcessor processor = createProcessor(actions);
 
         assertSame(
             getExpected,
-            processor.process(createGetOutputRequest("src","dest")));
+            processor.process(createGetOutputRequest("src","dest")).toCompletableFuture().join());
         assertThrows(
-            IllegalArgumentException.class,
+            CompletionException.class,
             () -> processor.process(
-                createHandleInputRequest("src","dest",null)));
+                createHandleInputRequest("src","dest",null)).toCompletableFuture().join());
     }
 
     @Test
     public void
-    testHandleInputKeyBuiltFromSourceDestinationCommand()
+    testHandleInputKeyBuiltFromSourceCommandDestination()
     {
         FrontEndOutput             expected = createOutput("result");
-        IHandleInputAction         action   = (HandleInputRequest r) -> expected;
+        IHandleInputAction         action   = (HandleInputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("s.d.c",action);
+        actions.put("s->c->d",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createHandleInputRequest("s","d","c"));
+            processor.process(createHandleInputRequest("s","d","c")).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -446,14 +448,14 @@ class DefaultRequestProcessorTest
     testGetOutputKeyBuiltFromSourceDestinationOnly()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
-        actions.put("s.d",action);
+        actions.put("s->d",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest("s","d"));
+            processor.process(createGetOutputRequest("s","d")).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -463,14 +465,14 @@ class DefaultRequestProcessorTest
     testGetOutputKeyWithNullDestination()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
         actions.put("s",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest("s",null));
+            processor.process(createGetOutputRequest("s",null)).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }
@@ -480,14 +482,14 @@ class DefaultRequestProcessorTest
     testGetOutputKeyWithNullSource()
     {
         FrontEndOutput             expected = createOutput("result");
-        IGetOutputAction           action   = (GetOutputRequest r) -> expected;
+        IGetOutputAction           action   = (GetOutputRequest r) -> CompletableFuture.completedFuture(expected);
         Map<String,IProcessAction> actions  = new HashMap<>();
 
         actions.put("",action);
 
         IRequestProcessor processor = createProcessor(actions);
         FrontEndOutput    actual    =
-            processor.process(createGetOutputRequest(null,null));
+            processor.process(createGetOutputRequest(null,null)).toCompletableFuture().join();
 
         assertSame(expected,actual);
     }

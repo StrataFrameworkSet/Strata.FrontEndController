@@ -8,13 +8,15 @@ import strata.frontendcontroller.service.requestreply.FrontEndOutput;
 import strata.frontendcontroller.service.requestreply.GetOutputRequest;
 import strata.frontendcontroller.service.requestreply.HandleInputRequest;
 
+import java.util.concurrent.CompletionStage;
+
 public
 interface IRequestProcessor
 {
-    FrontEndOutput
+    CompletionStage<FrontEndOutput>
     process(HandleInputRequest request);
 
-    FrontEndOutput
+    CompletionStage<FrontEndOutput>
     process(GetOutputRequest request);
 }
 

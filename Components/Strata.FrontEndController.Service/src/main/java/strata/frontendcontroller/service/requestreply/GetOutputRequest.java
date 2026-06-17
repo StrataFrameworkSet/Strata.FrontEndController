@@ -16,13 +16,16 @@ class GetOutputRequest
 {
     private Long   userId;
     private String source;
+    private String command;
     private String destination;
 
-    public GetOutputRequest()
+    public
+    GetOutputRequest()
     {
         super();
         userId      = null;
         source      = null;
+        command     = null;
         destination = null;
     }
 
@@ -83,6 +86,13 @@ class GetOutputRequest
     }
 
     public GetOutputRequest
+    setCommand(String s)
+    {
+        command = s;
+        return this;
+    }
+
+    public GetOutputRequest
     setDestination(String d)
     {
         destination = d;
@@ -94,6 +104,9 @@ class GetOutputRequest
 
     public String
     getSource() { return source; }
+
+    public String
+    getCommand() { return command; }
 
     public String
     getDestination() { return destination; }

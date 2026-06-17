@@ -1,6 +1,6 @@
 {
   "name": "strata.frontendcontroller.client",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "private": true,
   "main": "build/dist/index.js",
@@ -12,7 +12,7 @@
     "dev-init": "yarn --dev install",
     "build-init": "yarn run dev-init && yarn install && yarn run clean && shx mkdir -p build && yarn upgrade --pattern \"strata|strata\"",
     "build": "yarn run build-init && tsc && cd src/main/typescript && yarn run increment-snapshot && cd ../../.. && yarn run copy-files && cd build/dist && yarn pack",
-    "publish-package": "yarn run build && cd build/dist && yarn publish --non-interactive --tag 1.0.0-snapshot"
+    "publish-package": "yarn run build && cd build/dist && yarn publish --non-interactive --tag 0.0.0-snapshot"
   },
   "keywords": [],
   "author": "",
@@ -22,7 +22,7 @@
     "rxjs": "^6.5.5",
     "strata.client.core": "0.0.0-snapshot",
     "strata.foundation.core": "0.0.0-snapshot",
-    "strata.frontendcontroller.service": "1.0.0-snapshot"
+    "strata.frontendcontroller.service": "0.0.0-snapshot"
   },
   "devDependencies": {
     "del-cli": "^5.1.0",

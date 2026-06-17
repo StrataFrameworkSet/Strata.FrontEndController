@@ -36,4 +36,9 @@ class HandleInputRequestBuilder
 
         return request;
     }
+
+    public static newBuilder(): HandleInputRequestBuilder
+    {
+        return new HandleInputRequestBuilder();
+    }
 }

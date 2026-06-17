@@ -63,4 +63,9 @@ class GetOutputRequestBuilder
 
         return request;
     }
+
+    public static newBuilder(): GetOutputRequestBuilder
+    {
+        return new GetOutputRequestBuilder();
+    }
 }

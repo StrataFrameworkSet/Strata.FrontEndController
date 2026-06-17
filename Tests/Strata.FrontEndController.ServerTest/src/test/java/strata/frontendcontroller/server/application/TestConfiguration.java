@@ -6,6 +6,8 @@ package strata.frontendcontroller.server.application;
 
 import strata.frontendcontroller.server.platform.PlatformConfiguration;
 import strata.frontendcontroller.service.requestreply.GetOutputRequest;
+import strata.frontendcontroller.service.requestreply.IFrontEndControllerService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.*;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -54,6 +56,16 @@ class TestConfiguration
 
         actions.put("test-source",action);
         return new TestRequestProcessor(actions);
+    }
+
+    @Bean
+    @Scope("singleton")
+    public IFrontEndControllerService
+    frontEndControllerService(
+        IRequestProcessor processor,
+        ModelMapper       mapper)
+    {
+        return new FrontEndControllerService(processor,mapper);
     }
 }
 

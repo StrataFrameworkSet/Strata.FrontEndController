@@ -25,7 +25,8 @@ class FrontEndControllerService
     private final Logger            logger;
 
     @Inject
-    public FrontEndControllerService(IRequestProcessor p,ModelMapper m)
+    public
+    FrontEndControllerService(IRequestProcessor p,ModelMapper m)
     {
         processor = p;
         mapper = m;

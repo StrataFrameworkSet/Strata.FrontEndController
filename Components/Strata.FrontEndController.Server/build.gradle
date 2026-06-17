@@ -22,10 +22,6 @@ publishing {
             artifactId = 'strata-frontendcontroller-server'
             from components.java
 
-            artifact sourceJar {
-                //classifier "sources"
-            }
-
             repositories {
                 maven {
                     name "GitHubPackages"

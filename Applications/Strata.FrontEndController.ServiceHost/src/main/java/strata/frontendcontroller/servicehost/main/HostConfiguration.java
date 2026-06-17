@@ -4,9 +4,9 @@
 
 package strata.frontendcontroller.servicehost.main;
 
-import strata.frontendcontroller.server.application.ApplicationConfiguration;
+import strata.frontendcontroller.server.configuration.AdminFrontEndControllerConfiguration;
+import strata.frontendcontroller.server.configuration.UserFrontEndControllerConfiguration;
 import strata.frontendcontroller.server.domain.DomainConfiguration;
-import strata.frontendcontroller.server.platform.ServicePlatformConfiguration;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.providers.ObjectMapperProvider;
@@ -37,9 +37,9 @@ import strata.server.spring.service.ServiceConfiguration;
     scheme = "bearer")
  */
 @Import({
-    ApplicationConfiguration.class,
+    UserFrontEndControllerConfiguration.class,
+    AdminFrontEndControllerConfiguration.class,
     DomainConfiguration.class,
-    ServicePlatformConfiguration.class,
     ServiceConfiguration.class,
     SpringDocConfigProperties.class,
     StrataModelResolver.class})

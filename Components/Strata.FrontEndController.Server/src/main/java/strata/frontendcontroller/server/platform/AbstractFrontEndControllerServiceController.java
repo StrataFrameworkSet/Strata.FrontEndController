@@ -4,32 +4,25 @@
 
 package strata.frontendcontroller.server.platform;
 
-import strata.frontendcontroller.service.requestreply.*;
-import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.bind.annotation.*;
+import strata.frontendcontroller.service.requestreply.*;
 
 import java.util.concurrent.CompletionStage;
 
-@RestController
-@CrossOrigin(origins = "*")
-@RequestMapping("/frontendcontroller-service")
-@EnableTransactionManagement
-public
-class FrontEndControllerServiceController
+public abstract
+class AbstractFrontEndControllerServiceController
 {
     private IFrontEndControllerService implementation;
     private Logger                     logger;
 
-    @Inject
-    public
-    FrontEndControllerServiceController(IFrontEndControllerService imp)
+    protected
+    AbstractFrontEndControllerServiceController(IFrontEndControllerService imp)
     {
         implementation = imp;
-        logger = LogManager.getLogger(FrontEndControllerServiceController.class);
+        logger = LogManager.getLogger(AbstractFrontEndControllerServiceController.class);
     }
 
     @PostMapping(

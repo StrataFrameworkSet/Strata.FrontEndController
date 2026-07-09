@@ -13,7 +13,7 @@ import strata.frontendcontroller.service.requestreply.IFrontEndControllerService
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/admin-frontendcontroller-service")
+@RequestMapping("/frontendcontroller-admin-service")
 public
 class AdminFrontEndControllerServiceController
     extends AbstractFrontEndControllerServiceController

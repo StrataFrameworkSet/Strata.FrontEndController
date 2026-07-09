@@ -18,7 +18,7 @@ import strata.frontendcontroller.server.platform.UserFrontEndControllerServiceCo
 import strata.frontendcontroller.service.requestreply.IFrontEndControllerService;
 
 @Configuration
-@Import({ApplicationConfiguration.class,PlatformConfiguration.class})
+@Import({ApplicationConfiguration.class})
 public
 class UserFrontEndControllerConfiguration
 {

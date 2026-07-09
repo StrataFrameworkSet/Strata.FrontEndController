@@ -29,16 +29,6 @@ public
 class PlatformConfiguration
 {
     @Bean
-    @SingletonScoped
-    public LocalContainerEntityManagerFactoryBean
-    localContainerEntityManagerFactoryBean(IConfiguration configuration)
-    {
-        return
-            new LocalContainerEntityManagerFactoryBeanProvider(configuration)
-                .get();
-    }
-
-    @Bean
     @RequestScoped
     public ISpringUnitOfWorkManager
     unitOfWorkManager(JpaUnitOfWork unitOfWork)

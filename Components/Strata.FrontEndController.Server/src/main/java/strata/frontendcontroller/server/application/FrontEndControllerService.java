@@ -9,12 +9,12 @@ import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
-import strata.foundation.core.concurrent.CurrentThreadExecutor;
 import strata.foundation.core.transfer.ExceptionData;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executor;
 
 public
 class FrontEndControllerService
@@ -22,14 +22,16 @@ class FrontEndControllerService
 {
     private final IRequestProcessor processor;
     private final ModelMapper       mapper;
+    private final Executor          executor;
     private final Logger            logger;
 
     @Inject
     public
-    FrontEndControllerService(IRequestProcessor p,ModelMapper m)
+    FrontEndControllerService(IRequestProcessor p,ModelMapper m,Executor e)
     {
         processor = p;
         mapper = m;
+        executor = e;
         logger = LogManager.getLogger(FrontEndControllerService.class);
     }
 
@@ -40,7 +42,7 @@ class FrontEndControllerService
         logger.debug("handleInput({})",request.getRequestId());
         return
             CompletableFuture
-                .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
+                .supplyAsync(() -> validate(request),executor)
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
                 .thenCompose(context -> handleInput(context))
                 .thenApply(context -> buildReply(context))
@@ -54,7 +56,7 @@ class FrontEndControllerService
         logger.debug("getOutput({})",request.getRequestId());
         return
             CompletableFuture
-                .supplyAsync(() -> validate(request),new CurrentThreadExecutor())
+                .supplyAsync(() -> validate(request),executor)
                 .thenApply(validatedRequest -> mapToContext(validatedRequest))
                 .thenCompose(context -> getOutput(context))
                 .thenApply(context -> buildReply(context))

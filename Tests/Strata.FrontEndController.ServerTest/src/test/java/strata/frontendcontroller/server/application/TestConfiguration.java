@@ -16,9 +16,12 @@ import strata.frontendcontroller.server.domain.DomainConfiguration;
 import strata.foundation.core.configuration.IConfiguration;
 import strata.foundation.core.inject.ApplicationConfigurationProvider;
 
+import strata.foundation.core.concurrent.CurrentThreadExecutor;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Configuration
 @EnableTransactionManagement
@@ -61,12 +64,21 @@ class TestConfiguration
 
     @Bean
     @Scope("singleton")
+    public Executor
+    executor()
+    {
+        return new CurrentThreadExecutor();
+    }
+
+    @Bean
+    @Scope("singleton")
     public IFrontEndControllerService
     frontEndControllerService(
         IRequestProcessor processor,
-        ModelMapper       mapper)
+        ModelMapper       mapper,
+        Executor          executor)
     {
-        return new FrontEndControllerService(processor,mapper);
+        return new FrontEndControllerService(processor,mapper,executor);
     }
 }
 

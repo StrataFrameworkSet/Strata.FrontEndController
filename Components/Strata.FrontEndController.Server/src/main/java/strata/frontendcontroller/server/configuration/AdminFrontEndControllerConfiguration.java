@@ -9,7 +9,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Scope;
 import strata.foundation.spring.inject.RequestScoped;
+
+import java.util.concurrent.Executor;
 import strata.frontendcontroller.server.application.ApplicationConfiguration;
 import strata.frontendcontroller.server.application.FrontEndControllerService;
 import strata.frontendcontroller.server.application.IRequestProcessor;
@@ -34,15 +37,28 @@ class AdminFrontEndControllerConfiguration
     }
 
     @Bean
+    @Scope("singleton")
+    @Named("Admin")
+    public Executor
+    adminExecutor()
+    {
+        throw
+            new UnsupportedOperationException(
+                "Must be overridden by application");
+    }
+
+    @Bean
     @RequestScoped
     @Named("Admin")
     public IFrontEndControllerService
     adminFrontEndControllerService(
         @Named("Admin")
         IRequestProcessor processor,
+        @Named("Admin")
+        Executor          executor,
         ModelMapper       mapper)
     {
-        return new FrontEndControllerService(processor,mapper);
+        return new FrontEndControllerService(processor,mapper,executor);
     }
 
     @Bean

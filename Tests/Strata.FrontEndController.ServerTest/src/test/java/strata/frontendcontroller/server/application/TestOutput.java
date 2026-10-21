@@ -10,11 +10,24 @@ public
 class TestOutput
     extends FrontEndOutput
 {
+    private String payload;
+
     public
     TestOutput()
     {
         super();
+        payload = null;
     }
+
+    public TestOutput
+    setPayload(String p)
+    {
+        payload = p;
+        return this;
+    }
+
+    public String
+    getPayload() { return payload; }
 }
 
 //////////////////////////////////////////////////////////////////////////////

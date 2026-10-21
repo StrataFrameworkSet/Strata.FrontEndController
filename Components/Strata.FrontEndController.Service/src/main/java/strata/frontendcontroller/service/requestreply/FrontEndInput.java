@@ -5,10 +5,14 @@
 package strata.frontendcontroller.service.requestreply;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.io.Serializable;
 import java.util.Optional;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 public abstract
 class FrontEndInput
     implements Serializable

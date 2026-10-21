@@ -11,12 +11,14 @@ import org.springframework.web.context.request.RequestScope;
 import strata.foundation.core.configuration.IConfiguration;
 import strata.foundation.core.inject.ApplicationConfigurationProvider;
 import strata.foundation.spring.inject.RequestScoped;
+import strata.foundation.core.concurrent.CurrentThreadExecutor;
 import strata.frontendcontroller.server.application.*;
 import strata.frontendcontroller.service.requestreply.GetOutputRequest;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Configuration
 @PropertySource("classpath:test.properties")
@@ -24,6 +26,16 @@ public
 class TestAdminConfiguration
     extends AdminFrontEndControllerConfiguration
 {
+    @Override
+    @Bean
+    @Scope("singleton")
+    @Named("Admin")
+    public Executor
+    adminExecutor()
+    {
+        return new CurrentThreadExecutor();
+    }
+
     @Override
     @Bean
     @RequestScoped

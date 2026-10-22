@@ -10,9 +10,7 @@ import strata.frontendcontroller.service.requestreply.IFrontEndControllerService
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.*;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.request.RequestScope;
-import strata.frontendcontroller.server.domain.DomainConfiguration;
 import strata.foundation.core.configuration.IConfiguration;
 import strata.foundation.core.inject.ApplicationConfigurationProvider;
 
@@ -24,9 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @Configuration
-@EnableTransactionManagement
 @PropertySource("classpath:test.properties")
-@Import({ApplicationConfiguration.class,DomainConfiguration.class,PlatformConfiguration.class})
+@Import({ApplicationConfiguration.class,PlatformConfiguration.class})
 public
 class TestConfiguration
 {

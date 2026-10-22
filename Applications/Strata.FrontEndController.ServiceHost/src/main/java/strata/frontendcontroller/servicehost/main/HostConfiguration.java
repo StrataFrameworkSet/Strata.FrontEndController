@@ -6,7 +6,6 @@ package strata.frontendcontroller.servicehost.main;
 
 import strata.frontendcontroller.server.configuration.AdminFrontEndControllerConfiguration;
 import strata.frontendcontroller.server.configuration.UserFrontEndControllerConfiguration;
-import strata.frontendcontroller.server.domain.DomainConfiguration;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.providers.ObjectMapperProvider;
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.context.request.RequestScope;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import strata.foundation.core.configuration.IConfiguration;
@@ -27,7 +25,6 @@ import strata.foundation.spring.mapper.StrataObjectMapperProvider;
 import strata.server.spring.service.ServiceConfiguration;
 
 @Configuration
-@EnableTransactionManagement
 /*
 @EnableWebSecurity
 @SecurityScheme(
@@ -39,7 +36,6 @@ import strata.server.spring.service.ServiceConfiguration;
 @Import({
     UserFrontEndControllerConfiguration.class,
     AdminFrontEndControllerConfiguration.class,
-    DomainConfiguration.class,
     ServiceConfiguration.class,
     SpringDocConfigProperties.class,
     StrataModelResolver.class})

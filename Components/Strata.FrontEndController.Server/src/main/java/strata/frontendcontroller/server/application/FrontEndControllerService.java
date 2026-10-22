@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
 
 public
 class FrontEndControllerService
-    implements ITransactionalFrontEndControllerService
+    implements IFrontEndControllerService
 {
     private final IRequestProcessor processor;
     private final ModelMapper       mapper;

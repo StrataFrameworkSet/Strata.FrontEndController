@@ -2,19 +2,17 @@
 
 ## Overview
 
-Strata.FrontEndController is a Spring Boot microservice that manages the FrontEndController entity within the Strata system. The microservice exposes command and query REST APIs for CRUD operations on FrontEndController entities and emits domain events (FrontEndControllerCreated, FrontEndControllerUpdated, FrontEndControllerDestroyed) as frontendcontroller state changes occur. Events are propagated to external consumers via the Transactional Outbox pattern and Kafka.
+Strata.FrontEndController is a Spring Boot microservice that provides the front-end controller for the Strata system. The microservice exposes a request/reply REST service API. Actions run asynchronously on an Executor; the service persists nothing and emits no events.
 
 ## Technology Stack
 
 - **Language**: Java 22 (Amazon Corretto), TypeScript
 - **Build**: Gradle (multi-project), Yarn (TypeScript components)
 - **Framework**: Spring Boot 3.4, Spring 6.2
-- **Persistence**: JPA / Hibernate 6.4, PostgreSQL (production), H2 (testing)
 - **Object Mapping**: ModelMapper 3.2
-- **Eventing**: Kafka, Transactional Outbox (strata.outbox)
 - **Containerization**: Google Jib (OCI images)
 - **Testing**: JUnit Jupiter 5
-- **Foundation Libraries**: Strata Framework Set (strata.foundation.core, strata.server.core, strata.client.core, strata.outbox.core)
+- **Foundation Libraries**: Strata Framework Set (strata.foundation.core, strata.server.core, strata.client.core)
 
 ## Project Structure
 
@@ -23,9 +21,9 @@ Strata.FrontEndController/
 ├── Applications/
 │   └── Strata.FrontEndController.ServiceHost/    # Spring Boot app for service operations
 ├── Components/
-│   ├── Strata.FrontEndController.Service/        # Shared interfaces, DTOs, and events (Java + TypeScript)
-│   ├── Strata.FrontEndController.Server/         # Server-side implementation (domain, application, platform)
-│   └── Strata.FrontEndController.Client/         # REST client and Kafka event receiver (Java + TypeScript)
+│   ├── Strata.FrontEndController.Service/        # Shared interfaces and DTOs (Java + TypeScript)
+│   ├── Strata.FrontEndController.Server/         # Server-side implementation (application, platform, configuration)
+│   └── Strata.FrontEndController.Client/         # REST client (Java + TypeScript)
 ├── Tests/
 │   ├── Strata.FrontEndController.ServiceTest/    # Test fixtures for service interfaces
 │   ├── Strata.FrontEndController.ServerTest/     # Server unit/integration tests
@@ -44,9 +42,9 @@ The microservice follows a strict layered architecture with CQRS (Command Query 
 
 Each layer is organized into a dedicated Java package:
 
-- **`server.platform`** — Spring REST controllers, Spring configuration, JPA/Hibernate unit-of-work wiring, frontendcontroller event sender implementations. Depends on `server.application` and `server.domain`.
-- **`server.application`** — Service implementation (`FrontEndControllerService`), context objects, ModelMapper configuration. Depends on `server.domain`.
-- **`server.domain`** — Domain frontendcontroller (`FrontEndController`), repository interface/implementation, domain event types. No upward dependencies.
+- **`server.platform`** — Spring REST controllers and platform Spring configuration (health checks). Depends on `server.application`.
+- **`server.application`** — Service implementation (`FrontEndControllerService`), context objects, ModelMapper configuration. No upward dependencies.
+- **`server.configuration`** — `AdminFrontEndControllerConfiguration` and `UserFrontEndControllerConfiguration`, which wire the request processor, executor, service and controller for each audience.
 
 ### Component Responsibilities
 
@@ -58,49 +56,40 @@ The shared contract component. Contains no implementation logic. Defines:
 - **Request/Reply DTOs**: `HandleInputRequest`/`Reply`, `GetOutputRequest`/`Reply`
 - **Data transfer objects**: `FrontEndInput` (abstract), `FrontEndOutput` (abstract)
 - **Mappers**: `FrontEndInputMapper`, `FrontEndOutputMapper`
-- **Event interfaces**: `IFrontEndControllerEventSender`, `IFrontEndControllerEventReceiver`, `IFrontEndControllerEventListener`
 - **TypeScript mirror**: All interfaces and DTOs are also defined in TypeScript under `src/main/typescript/`
 
 #### Strata.FrontEndController.Server
 
 The server-side implementation:
 
-- **Domain layer** (`server.domain`):
-  - `FrontEndController` — JPA frontendcontroller extending `AbstractEntityAndDomainEventSource`; fires domain events on create/update/destroy
-  - `IFrontEndControllerRepository` / `FrontEndControllerRepository` — Repository interface and JPA implementation with `findAllByIdIn`, `findAllByFoo`, `findAllByFooIn` queries
-  - Domain events: `FrontEndControllerCreated`, `FrontEndControllerUpdated`, `FrontEndControllerDestroyed` extending `AbstractFrontEndControllerEvent`
-  - Observer pattern: `IFrontEndControllerEventObserver`, `IFrontEndControllerEventSource`
-
 - **Application layer** (`server.application`):
   - `FrontEndControllerService` — Implements `IFrontEndControllerService`. Provides `handleInput` and `getOutput` operations.
   - Context objects: `HandleInputContext`, `GetOutputContext`
-  - `MappingModule` — ModelMapper type mappings between FrontEndController domain objects and FrontEndController DTOs
+  - `MappingModule` — ModelMapper module for type mappings (currently registers none)
   - `ApplicationConfiguration` — Spring `@Configuration` that wires frontendcontroller services with request scope
 
 - **Platform layer** (`server.platform`):
-  - `FrontEndControllerServiceController` — Spring `@RestController` exposing service endpoints under `/frontendcontroller-service/`
-  - `PlatformConfiguration` — Base Spring configuration for JPA EntityManagerFactory, UnitOfWork, and synchronization manager
-  - `ServicePlatformConfiguration` — Extends `PlatformConfiguration`; wires service controller
-  - Event senders: `OnCommitFrontEndControllerEventSender` (sends after transaction commit), `OutboxEventFrontEndControllerEventSender` (persists to outbox table), `MockFrontEndControllerEventSender` (testing)
+  - `AbstractFrontEndControllerServiceController` — Base controller exposing `POST /handle-input` and `POST /get-output`, delegating to `IFrontEndControllerService`
+  - `AdminFrontEndControllerServiceController` / `UserFrontEndControllerServiceController` — Spring `@RestController`s mapped under `/frontendcontroller-admin-service` and `/frontendcontroller-user-service`
+  - `PlatformConfiguration` — Spring configuration that imports Strata's `HealthCheckConfiguration`
 
 #### Strata.FrontEndController.Client
 
-REST client and event receiver implementations:
+REST client implementations:
 
 - **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient`
 - **Client interfaces** (Java): `IFrontEndControllerServiceClient`
-- **Event receiver**: `FrontEndControllerKafkaEventReceiver`, `FrontEndControllerKafkaAvroEventReceiver` — Kafka consumers for FrontEndController events
 - **TypeScript mirror**: `FrontEndControllerServiceClient` with corresponding interface
 
 ### Applications
 
-- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `ApplicationConfiguration`, `DomainConfiguration`, `ServicePlatformConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `UserFrontEndControllerConfiguration`, `AdminFrontEndControllerConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
 
 ## Commonly Used Design Patterns
 
 ### CQRS (Command Query Responsibility Segregation)
 
-Service operations (handleInput, getOutput) are exposed via `IFrontEndControllerService`, `FrontEndControllerServiceController`, and the `FrontEndControllerServiceHost` application.
+Service operations (handleInput, getOutput) are exposed via `IFrontEndControllerService`, `AdminFrontEndControllerServiceController`/`UserFrontEndControllerServiceController`, and the `FrontEndControllerServiceHost` application.
 
 ### Request-Reply
 
@@ -118,33 +107,17 @@ validate → mapToContext → [operation steps] → buildReply
 
 Each step receives and returns a typed context object that accumulates state through the pipeline. The pattern ensures consistent validation, error handling, and reply construction across all operations.
 
-### Observer (Domain Events)
-
-The `FrontEndController` domain object extends `AbstractEntityAndDomainEventSource` and fires domain events (`FrontEndControllerCreated`, `FrontEndControllerUpdated`, `FrontEndControllerDestroyed`) via the observer pattern.
-
-### Transactional Outbox
-
-Event delivery uses the Transactional Outbox pattern to guarantee at-least-once delivery. `OnCommitFrontEndControllerEventSender` defers sending until the database transaction commits. `OutboxEventFrontEndControllerEventSender` serializes the event into an outbox table within the same transaction as the frontendcontroller state change, and a separate process polls the outbox and publishes to Kafka.
-
-### Repository
-
-`IFrontEndControllerRepository` extends the Strata `IRepository<Long,FrontEndController>` interface providing standard `findById`, `save`, `delete` operations. The concrete `FrontEndControllerRepository` extends `AbstractRepository` and registers named JPA queries for `findAllByIdIn`, `findAllByFoo`, and `findAllByFooIn`.
-
 ### Context Object
 
 Each service pipeline uses a typed context object (e.g., `HandleInputContext`, `GetOutputContext`) that carries the request, intermediate state, and results through the pipeline steps. Context objects use fluent setters and provide convenience getters that delegate to the underlying request.
 
-### Strategy (Event Sending)
-
-The `IFrontEndControllerEventSender` interface has multiple implementations (`MockFrontEndControllerEventSender`, `OnCommitFrontEndControllerEventSender`, `OutboxEventFrontEndControllerEventSender`) that are selected via Spring configuration, allowing the event delivery strategy to be swapped without changing service code.
-
 ### Composable Configuration
 
-Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConfiguration` provides shared JPA/UnitOfWork beans, and `ServicePlatformConfiguration` extends it with service-specific beans. `HostConfiguration` at the application level imports and assembles all required configurations.
+Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConfiguration` provides shared platform beans (health checks), and `AdminFrontEndControllerConfiguration`/`UserFrontEndControllerConfiguration` each import `ApplicationConfiguration` and wire an audience-specific service and controller. `HostConfiguration` at the application level imports and assembles all required configurations.
 
 ## REST Endpoints
 
-### FrontEndController Service (`/frontendcontroller-service/`)
+### FrontEndController Admin/User Services (`/frontendcontroller-admin-service`, `/frontendcontroller-user-service`)
 
 | Endpoint | Request | Reply |
 |---|---|---|
@@ -155,7 +128,7 @@ Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConf
 
 ### Interface Naming
 
-All interfaces are prefixed with `I`. Examples: `IFrontEndControllerRepository`, `IFrontEndControllerService`, `IFrontEndControllerEventSender`, `IFrontEndControllerEventObserver`, `IFrontEndControllerServiceClient`.
+All interfaces are prefixed with `I`. Examples: `IFrontEndControllerService`, `IFrontEndControllerServiceClient`.
 
 ### Class and Method Formatting
 
@@ -168,7 +141,7 @@ Key formatting rules:
 - **Method return type on its own line**: The access modifier and return type are on one line, and the method name with parameters is on the next line.
 - **Allman brace style**: Opening braces `{` are on their own line for classes, methods, constructors, and control structures.
 - **Compact getters**: Simple getters that return a single field use an inline body on the same line as the method name: `getFoo() { return foo; }`.
-- **Column alignment**: Related field declarations are column-aligned by type and name (e.g., `private final IFrontEndControllerRepository  repository;` and `private final ModelMapper            mapper;`).
+- **Column alignment**: Related field declarations are column-aligned by type and name (e.g., `private final IRequestProcessor processor;` and `private final ModelMapper       mapper;`).
 - **Constructor field alignment**: Assignment statements in constructors are column-aligned on the `=` sign.
 - **Minimal space after commas**: Method calls and declarations use `(param1,param2)` with no space after commas in most cases, or a single space after commas when it improves readability.
 

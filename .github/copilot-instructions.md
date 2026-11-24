@@ -77,13 +77,15 @@ The server-side implementation:
 
 REST client implementations:
 
-- **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient`
+- **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient` — `FrontEndControllerServiceClient(baseUrl)` targets the user service; `FrontEndControllerServiceClient(baseUrl,ADMIN_SERVICE_PATH)` targets the admin service
 - **Client interfaces** (Java): `IFrontEndControllerServiceClient`
 - **TypeScript mirror**: `FrontEndControllerServiceClient` with corresponding interface
 
 ### Applications
 
-- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `UserFrontEndControllerConfiguration`, `AdminFrontEndControllerConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `HostUserConfiguration`, `HostAdminConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+  - `HostUserConfiguration` / `HostAdminConfiguration` extend the audience configurations (whose `*RequestProcessor` and `*Executor` beans must be overridden by the application). Each supplies a virtual-thread `Executor` and a `HostRequestProcessor` (a `DefaultRequestProcessor`) built from the `IProcessAction` beans qualified with Spring `@Qualifier("User")` / `@Qualifier("Admin")`; the bean name is the action key. No actions are registered by default.
+  - `IntegrationTestConfiguration` (`@Profile("integration-test")`) registers a user `test-source` get-output action for the `IntegrationStage` tests; the build pipeline starts the ServiceHost image with `SPRING_PROFILES_ACTIVE=integration-test`.
 
 ## Commonly Used Design Patterns
 

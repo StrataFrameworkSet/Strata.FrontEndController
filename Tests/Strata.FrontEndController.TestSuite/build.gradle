@@ -31,7 +31,7 @@ dependencies {
     api project(':Components:Strata.FrontEndController.Service')
     api project(':Components:Strata.FrontEndController.Server')
     api project(':Components:Strata.FrontEndController.Client')
-    implementation project(path: ':Tests:Strata.FrontEndController.ServiceTest', configuration: 'testArtifacts')
+    implementation(testFixtures(project(':Tests:Strata.FrontEndController.ServiceTest')))
     implementation project(path: ':Tests:Strata.FrontEndController.ServerTest', configuration: 'testArtifacts')
     implementation project(path: ':Tests:Strata.FrontEndController.ClientTest', configuration: 'testArtifacts')
      implementation 'org.slf4j:slf4j-reload4j:2.0.17'

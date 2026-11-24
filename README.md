@@ -2,7 +2,8 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Snapshot](https://img.shields.io/badge/snapshot-1.0.0--SNAPSHOT-orange.svg)]()
+[![Release](https://img.shields.io/badge/release-1.0.0-blue.svg)]()
+[![Snapshot](https://img.shields.io/badge/snapshot-1.1.0--SNAPSHOT-orange.svg)]()
 
 Front-end controller framework for the Strata Framework Set. Strata.FrontEndController provides the building blocks for typed, per-subject request/reply operations between client applications and a backend: generic request/reply DTOs, an asynchronous template pipeline, an abstract controller and abstract Java and TypeScript clients. Applications extend it with their own subjects (for example `handleUsersInput` / `getUsersOutput`); the bundled Echo subject is the runnable reference. The service persists nothing and emits no events.
 
@@ -98,7 +99,7 @@ Applications define their own paths and endpoints for their subjects.
 
 ## Installation
 
-The current development build is `1.0.0-SNAPSHOT`, built against Strata.Foundation, Strata.Client and Strata.Server **1.0.0** (see [Versioning](#versioning)).
+The current release is **1.0.0**, built against Strata.Foundation, Strata.Client and Strata.Server **1.0.0**. To try the latest development build, use `1.1.0-SNAPSHOT` instead (see [Versioning](#versioning)).
 
 ### Gradle
 
@@ -106,9 +107,9 @@ Add the following dependencies to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'strata.frontendcontroller:strata-frontendcontroller-service:1.0.0-SNAPSHOT'
-    implementation 'strata.frontendcontroller:strata-frontendcontroller-client:1.0.0-SNAPSHOT'
-    implementation 'strata.frontendcontroller:strata-frontendcontroller-server:1.0.0-SNAPSHOT'
+    implementation 'strata.frontendcontroller:strata-frontendcontroller-service:1.0.0'
+    implementation 'strata.frontendcontroller:strata-frontendcontroller-client:1.0.0'
+    implementation 'strata.frontendcontroller:strata-frontendcontroller-server:1.0.0'
 }
 ```
 
@@ -121,29 +122,34 @@ Add the following dependencies to your `pom.xml`:
     <dependency>
         <groupId>strata.frontendcontroller</groupId>
         <artifactId>strata-frontendcontroller-service</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>strata.frontendcontroller</groupId>
         <artifactId>strata-frontendcontroller-client</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
     <dependency>
         <groupId>strata.frontendcontroller</groupId>
         <artifactId>strata-frontendcontroller-server</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
 </dependencies>
 ```
 
 ### TypeScript (npm / yarn)
 
-The TypeScript packages `strata.frontendcontroller.service` and `strata.frontendcontroller.client` are published to npmjs.org. Install the development snapshot by dist-tag:
+The TypeScript packages `strata.frontendcontroller.service` and `strata.frontendcontroller.client` are published to npmjs.org. Install them by dist-tag:
 
 ```bash
-npm install strata.frontendcontroller.service@snapshot-1.0.0 strata.frontendcontroller.client@snapshot-1.0.0
-# or
-yarn add strata.frontendcontroller.service@snapshot-1.0.0 strata.frontendcontroller.client@snapshot-1.0.0
+# Current release (1.0.0)
+npm install strata.frontendcontroller.service@release-1.0.0 strata.frontendcontroller.client@release-1.0.0
+
+# Latest development snapshot (1.1.0)
+npm install strata.frontendcontroller.service@snapshot-1.1.0 strata.frontendcontroller.client@snapshot-1.1.0
+
+# or, with yarn
+yarn add strata.frontendcontroller.service@release-1.0.0 strata.frontendcontroller.client@release-1.0.0
 ```
 
 ### Docker Images
@@ -151,8 +157,8 @@ yarn add strata.frontendcontroller.service@snapshot-1.0.0 strata.frontendcontrol
 The FrontEndController ServiceHost and the integration test suite are published to GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/johnliebenau/strata/strata-frontendcontroller-servicehost:1.0.0-<yyyyMMddHHmmss>
-docker pull ghcr.io/johnliebenau/strata/strata-frontendcontroller-testsuite:1.0.0-<yyyyMMddHHmmss>
+docker pull ghcr.io/johnliebenau/strata/strata-frontendcontroller-servicehost:1.0.0
+docker pull ghcr.io/johnliebenau/strata/strata-frontendcontroller-testsuite:1.0.0
 ```
 
 The ServiceHost hosts the Echo sample subject, listens on HTTPS port 8081 and needs `PROPERTIES_ENCRYPTION_KEY`.
@@ -178,7 +184,7 @@ repositories {
 
 | | Development snapshot | Release |
 |---|---|---|
-| Maven jars | `X.Y.0-SNAPSHOT` (e.g. `1.0.0-SNAPSHOT`) | `X.Y.0` (e.g. `1.0.0`) |
+| Maven jars | `X.Y.0-SNAPSHOT` (e.g. `1.1.0-SNAPSHOT`) | `X.Y.0` (e.g. `1.0.0`) |
 | npm packages | `X.Y.0-snapshot.<timestamp>`, dist-tag `snapshot-X.Y.0` | `X.Y.0-release.<timestamp>`, dist-tags `release-X.Y.0` and `latest` |
 | Docker images | `X.Y.0-<yyyyMMddHHmmss>` (one per pipeline run) | `X.Y.0` |
 
@@ -526,7 +532,7 @@ Tests are tagged by pipeline stage:
 
 ```bash
 docker run --rm --network host -e PROPERTIES_ENCRYPTION_KEY \
-    ghcr.io/johnliebenau/strata/strata-frontendcontroller-testsuite:1.0.0-<yyyyMMddHHmmss> \
+    ghcr.io/johnliebenau/strata/strata-frontendcontroller-testsuite:1.0.0 \
     --package=strata.frontendcontroller --tags=IntegrationStage
 ```
 

@@ -162,7 +162,7 @@ Applications define their own paths and endpoints for their subjects.
 
 | | Development snapshot | Release |
 |---|---|---|
-| Maven jars | `X.Y.0-SNAPSHOT` (e.g. `1.0.0-SNAPSHOT`) | `X.Y.0` (e.g. `1.0.0`) |
+| Maven jars | `X.Y.0-SNAPSHOT` (e.g. `1.1.0-SNAPSHOT`) | `X.Y.0` (e.g. `1.0.0`) |
 | npm packages | `X.Y.0-snapshot.<timestamp>`, dist-tag `snapshot-X.Y.0` | `X.Y.0-release.<timestamp>`, dist-tags `release-X.Y.0` and `latest` |
 | Docker images | `X.Y.0-<yyyyMMddHHmmss>` (one per pipeline run) | `X.Y.0` |
 

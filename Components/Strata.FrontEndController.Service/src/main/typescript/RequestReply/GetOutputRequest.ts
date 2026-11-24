@@ -4,7 +4,8 @@ export
 interface GetOutputRequest
     extends AbstractServiceRequest
 {
-    userId: number;
+    userId?: number | null;
     source: string;
-    destination: string;
+    command?: string | null;
+    destination?: string | null;
 }

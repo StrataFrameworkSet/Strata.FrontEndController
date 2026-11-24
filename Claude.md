@@ -2,7 +2,7 @@
 
 ## Overview
 
-Strata.FrontEndController is a Spring Boot microservice that provides the front-end controller for the Strata system. The microservice exposes a request/reply REST service API. Actions run asynchronously on an Executor; the service persists nothing and emits no events.
+Strata.FrontEndController is a Spring Boot microservice that provides the front-end controller for the Strata system. It is a framework layer: the microservice exposes a request/reply REST service API of typed, per-subject operations (e.g. `handleEchoInput` / `getEchoOutput`) that applications extend with their own subjects. Actions run asynchronously on an Executor; the service persists nothing and emits no events.
 
 ## Technology Stack
 
@@ -19,13 +19,13 @@ Strata.FrontEndController is a Spring Boot microservice that provides the front-
 ```
 Strata.FrontEndController/
 ├── Applications/
-│   └── Strata.FrontEndController.ServiceHost/    # Spring Boot app for service operations
+│   └── Strata.FrontEndController.ServiceHost/    # Spring Boot app hosting the sample subject
 ├── Components/
 │   ├── Strata.FrontEndController.Service/        # Shared interfaces and DTOs (Java + TypeScript)
-│   ├── Strata.FrontEndController.Server/         # Server-side implementation (application, platform, configuration)
-│   └── Strata.FrontEndController.Client/         # REST client (Java + TypeScript)
+│   ├── Strata.FrontEndController.Server/         # Server-side implementation (application, platform, sample)
+│   └── Strata.FrontEndController.Client/         # REST client bases and sample clients (Java + TypeScript)
 ├── Tests/
-│   ├── Strata.FrontEndController.ServiceTest/    # Test fixtures for service interfaces
+│   ├── Strata.FrontEndController.ServiceTest/    # Test fixtures for service interfaces and controller mappings
 │   ├── Strata.FrontEndController.ServerTest/     # Server unit/integration tests
 │   ├── Strata.FrontEndController.ClientTest/     # Client integration tests
 │   └── Strata.FrontEndController.TestSuite/      # Aggregated test suite
@@ -36,15 +36,15 @@ Strata.FrontEndController/
 
 ## Architecture
 
-The microservice follows a strict layered architecture with CQRS (Command Query Responsibility Segregation). Commands and queries are separated into distinct host applications, service interfaces, and controllers.
+The microservice follows a strict layered architecture with CQRS (Command Query Responsibility Segregation). Each subject declares its own operations on its own service interface, controller and client. The framework supplies generic base types and a template pipeline; applications supply the subject-specific parts.
 
 ### Layers (Strata.FrontEndController.Server)
 
 Each layer is organized into a dedicated Java package:
 
-- **`server.platform`** — Spring REST controllers and platform Spring configuration (health checks). Depends on `server.application`.
-- **`server.application`** — Service implementation (`FrontEndControllerService`), context objects, ModelMapper configuration. No upward dependencies.
-- **`server.configuration`** — `AdminFrontEndControllerConfiguration` and `UserFrontEndControllerConfiguration`, which wire the request processor, executor, service and controller for each audience.
+- **`server.platform`** — Abstract REST controller base and platform Spring configuration (health checks). Depends on `server.application`.
+- **`server.application`** — Abstract service implementation (`FrontEndControllerService`), generic context objects, ModelMapper configuration. No upward dependencies.
+- **`server.sample`** — Echo sample subject: service, controller and configuration that wire the sample into the host.
 
 ### Component Responsibilities
 
@@ -52,83 +52,117 @@ Each layer is organized into a dedicated Java package:
 
 The shared contract component. Contains no implementation logic. Defines:
 
-- **Service interfaces**: `IFrontEndControllerService`
-- **Request/Reply DTOs**: `HandleInputRequest`/`Reply`, `GetOutputRequest`/`Reply`
-- **Data transfer objects**: `FrontEndInput` (abstract), `FrontEndOutput` (abstract)
-- **Mappers**: `FrontEndInputMapper`, `FrontEndOutputMapper`
-- **TypeScript mirror**: All interfaces and DTOs are also defined in TypeScript under `src/main/typescript/`
+- **Service interfaces**: `IFrontEndControllerService` is an empty marker interface. Subjects extend it with their own operations (e.g. `IEchoFrontEndControllerService` declares `handleEchoInput` and `getEchoOutput`). No operation is declared on the marker, because any method would have to fit every subject.
+- **Request/Reply DTOs**: generic bases `HandleInputRequest<I>`, `HandleInputReply<I,O>` (echoes the input; applications mark sensitive input fields write-only), `GetOutputRequest` (abstract; `userId`, `source`, `command`, `destination`; `getKey()`), `GetOutputReply<O>`.
+- **Data transfer objects**: `FrontEndInput` (abstract), `FrontEndOutput` (abstract). They carry no Jackson type ids; each subject's concrete subclasses bind the generic types.
+- **Mappers**: `FrontEndInputMapper`, `FrontEndOutputMapper`, generalized to the generic reply and request types.
+- **Keys**: `KeyBuilder` builds the `source->command->destination` key. It is used for logging only, not for routing.
+- **TypeScript mirror**: All interfaces and DTOs are also defined in TypeScript under `src/main/typescript/`, with `Array<T>` syntax.
 
 #### Strata.FrontEndController.Server
 
 The server-side implementation:
 
 - **Application layer** (`server.application`):
-  - `FrontEndControllerService` — Implements `IFrontEndControllerService`. Provides `handleInput` and `getOutput` operations.
-  - Context objects: `HandleInputContext`, `GetOutputContext`
+  - `FrontEndControllerService` — `public abstract class` implementing `IFrontEndControllerService`. Constructed with `(ModelMapper,Executor)`. Provides generic protected template helpers `handleInput(...)` and `getOutput(...)`, each taking the request, an optional validator, an operation step and a reply factory (see Pipeline below).
+  - Standard validation: `validate` requires `input` to be non-null for handle requests and `source` to be non-null for get requests. `userId` is not required. Subclasses override these generic `validate` methods to change validation for all their subjects.
+  - Context objects: `HandleInputContext<I,O>`, `GetOutputContext<R,O>`
   - `MappingModule` — ModelMapper module for type mappings (currently registers none)
-  - `ApplicationConfiguration` — Spring `@Configuration` that wires frontendcontroller services with request scope
+  - `ApplicationConfiguration` — Spring `@Configuration` that provides the shared `ModelMapper` singleton
 
 - **Platform layer** (`server.platform`):
-  - `AbstractFrontEndControllerServiceController` — Base controller exposing `POST /handle-input` and `POST /get-output`, delegating to `IFrontEndControllerService`
-  - `AdminFrontEndControllerServiceController` / `UserFrontEndControllerServiceController` — Spring `@RestController`s mapped under `/frontendcontroller-admin-service` and `/frontendcontroller-user-service`
+  - `AbstractFrontEndControllerServiceController<S extends IFrontEndControllerService>` — Base controller holding the service `S`. It declares no mappings; each subject controller maps its own endpoints.
   - `PlatformConfiguration` — Spring configuration that imports Strata's `HealthCheckConfiguration`
+
+- **Sample layer** (`server.sample`): `EchoFrontEndControllerService`, `EchoFrontEndControllerServiceController` and `EchoFrontEndControllerConfiguration` (see Echo Sample below).
 
 #### Strata.FrontEndController.Client
 
 REST client implementations:
 
-- **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient`
-- **Client interfaces** (Java): `IFrontEndControllerServiceClient`
-- **TypeScript mirror**: `FrontEndControllerServiceClient` with corresponding interface
+- **Client interfaces** (Java): `IFrontEndControllerServiceClient` extends `IFrontEndControllerService`
+- **Abstract base clients** (Java and TypeScript): `AbstractFrontEndControllerServiceClient` extends `AbstractRestClient` (Java) and carries base URL, SSL setup, and authorization handling. Subject clients call `doPostAsync` with their path and reply type. The Java clients append the service path (e.g. `frontendcontroller-service/`) to the base URL; the TypeScript clients post relative to `baseUrl`, so TS callers include the service path in `baseUrl`.
+- **Sample clients** (`client.sample`, TypeScript `Sample/`): `IEchoFrontEndControllerServiceClient` and `EchoFrontEndControllerServiceClient`
+- **TypeScript mirror**: `IFrontEndControllerServiceClient` and `AbstractFrontEndControllerServiceClient` (`setAuthorization`, `close`, protected `initializeRequest`)
 
 ### Applications
 
-- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `UserFrontEndControllerConfiguration`, `AdminFrontEndControllerConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack. `HostConfiguration` imports `EchoFrontEndControllerConfiguration`, which hosts the Echo sample subject. Listens on port 8081.
+- Applications that extend the framework define their own audience controllers, configurations and paths.
 
 ## Commonly Used Design Patterns
 
 ### CQRS (Command Query Responsibility Segregation)
 
-Service operations (handleInput, getOutput) are exposed via `IFrontEndControllerService`, `AdminFrontEndControllerServiceController`/`UserFrontEndControllerServiceController`, and the `FrontEndControllerServiceHost` application.
+Each subject's operations (e.g. `handleEchoInput`, `getEchoOutput`) are declared on its own service interface, implemented in its service, mapped by its controller and called through its client. The `FrontEndControllerServiceHost` application hosts them.
 
 ### Request-Reply
 
-All service operations accept a typed request DTO and return a typed reply DTO. Requests extend `AbstractServiceRequest` (with `requestId`, `timestamp`, headers, cookies). Replies extend `AbstractServiceReply` (with `replyId`, `originatingRequestId`, `success`, `successMessage`, `failureMessage`, `exception`). Each operation has its own request/reply pair (e.g., `HandleInputRequest` → `HandleInputReply`).
+All service operations accept a typed request DTO and return a typed reply DTO. Requests extend `AbstractServiceRequest` (with `requestId`, `timestamp`, headers, cookies). Replies extend `AbstractServiceReply` (with `replyId`, `originatingRequestId`, `success`, `successMessage`, `failureMessage`, `exception`). Each operation has its own concrete request/reply pair that binds the generic base, e.g. `HandleEchoInputRequest extends HandleInputRequest<EchoInput>` and `HandleEchoInputReply extends HandleInputReply<EchoInput,EchoOutput>`.
 
 ### Pipeline (Chain of Responsibility)
 
-All service methods follow an asynchronous pipeline pattern using `CompletionStage`:
+All service operations follow an asynchronous pipeline pattern using `CompletionStage`, run by the abstract service's template helpers:
 
 ```
-validate → mapToContext → [operation steps] → buildReply
-                                                  ↓ (on failure)
-                                             buildReply(exception)
+validate (optional per-subject validator) → mapToContext → operation → buildReply
+                                                                        ↓ (on failure)
+                                                                   buildReply(exception)
 ```
 
-Each step receives and returns a typed context object that accumulates state through the pipeline. The pattern ensures consistent validation, error handling, and reply construction across all operations.
+Each subject supplies its operation step and reply factory, and optionally a validator (overload taking a `UnaryOperator<Q>`):
+
+```java
+@Override
+public CompletionStage<HandleEchoInputReply>
+handleEchoInput(HandleEchoInputRequest request)
+{
+    return handleInput(request,this::echoInput,HandleEchoInputReply::new);
+}
+```
+
+Without a validator, the standard `validate` is used. A per-subject validator may call the standard `validate` and then add its own checks, and it must return the request it was given (the handle success reply is built from the original request). Validation failures throw and become a failure reply. Success replies set `success=true` with a fixed success message and the output; failure replies set `success=false` with a fixed failure message and `ExceptionData`.
 
 ### Context Object
 
-Each service pipeline uses a typed context object (e.g., `HandleInputContext`, `GetOutputContext`) that carries the request, intermediate state, and results through the pipeline steps. Context objects use fluent setters and provide convenience getters that delegate to the underlying request.
+Each service pipeline uses a generic context object (`HandleInputContext<I,O>`, `GetOutputContext<R,O>`) that carries the request, the intermediate state and the output through the operation step. Context objects use fluent setters and provide convenience getters that delegate to the underlying request.
+
+### Subject Pattern (Adding an Operation)
+
+- Service interface: extends `IFrontEndControllerService` and declares the subject's operations.
+- Service: extends `FrontEndControllerService` and implements the interface, delegating to `handleInput`/`getOutput`.
+- Controller: extends `AbstractFrontEndControllerServiceController`, does **not** implement the subject interface, and maps every interface method with an annotation ending in `Mapping`.
+- Mapping completeness: the subject's controller test extends `AbstractControllerMappingTest` (ServiceTest fixture), which fails and names every interface method that the controller does not map.
 
 ### Composable Configuration
 
-Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConfiguration` provides shared platform beans (health checks), and `AdminFrontEndControllerConfiguration`/`UserFrontEndControllerConfiguration` each import `ApplicationConfiguration` and wire an audience-specific service and controller. `HostConfiguration` at the application level imports and assembles all required configurations.
+Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConfiguration` provides shared platform beans (health checks). `ApplicationConfiguration` provides the shared `ModelMapper` singleton. A subject configuration (e.g. `EchoFrontEndControllerConfiguration`) imports `ApplicationConfiguration` and provides its named executor, service and controller. `HostConfiguration` at the application level imports and assembles the required configurations.
+
+## Echo Sample
+
+The Echo subject is the reference implementation of the framework and is used by tests:
+
+- **Service (Java)**: `strata.frontendcontroller.service.sample` — `EchoInput`, `EchoOutput`, `HandleEchoInputRequest`/`Reply`, `GetEchoOutputRequest`/`Reply`, `IEchoFrontEndControllerService`
+- **Server**: `strata.frontendcontroller.server.sample` — `EchoFrontEndControllerService` (handle echoes the input text; get derives its output from the request key), `EchoFrontEndControllerServiceController`, `EchoFrontEndControllerConfiguration` (named `Echo` executor, defaulting to `ForkJoinPool.commonPool()` and overridable in tests)
+- **Client**: `strata.frontendcontroller.client.sample` — `IEchoFrontEndControllerServiceClient`, `EchoFrontEndControllerServiceClient`
+- **TypeScript**: `Sample/` folders with `index.ts` in the Service and Client components
 
 ## REST Endpoints
 
-### FrontEndController Admin/User Services (`/frontendcontroller-admin-service`, `/frontendcontroller-user-service`)
+### Echo Sample Service (`/frontendcontroller-service`)
 
 | Endpoint | Request | Reply |
 |---|---|---|
-| `POST /handle-input` | `HandleInputRequest` | `HandleInputReply` |
-| `POST /get-output` | `GetOutputRequest` | `GetOutputReply` |
+| `POST /handle-echo-input` | `HandleEchoInputRequest` | `HandleEchoInputReply` |
+| `POST /get-echo-output` | `GetEchoOutputRequest` | `GetEchoOutputReply` |
+
+Applications define their own paths and endpoints for their subjects.
 
 ## Preferred Coding Style and Idioms
 
 ### Interface Naming
 
-All interfaces are prefixed with `I`. Examples: `IFrontEndControllerService`, `IFrontEndControllerServiceClient`.
+All interfaces are prefixed with `I`. Examples: `IFrontEndControllerService`, `IEchoFrontEndControllerService`, `IFrontEndControllerServiceClient`.
 
 ### Class and Method Formatting
 
@@ -141,7 +175,7 @@ Key formatting rules:
 - **Method return type on its own line**: The access modifier and return type are on one line, and the method name with parameters is on the next line.
 - **Allman brace style**: Opening braces `{` are on their own line for classes, methods, constructors, and control structures.
 - **Compact getters**: Simple getters that return a single field use an inline body on the same line as the method name: `getFoo() { return foo; }`.
-- **Column alignment**: Related field declarations are column-aligned by type and name (e.g., `private final IRequestProcessor processor;` and `private final ModelMapper       mapper;`).
+- **Column alignment**: Related field declarations are column-aligned by type and name (e.g., `private final ModelMapper       mapper;` and `private final Executor          executor;`).
 - **Constructor field alignment**: Assignment statements in constructors are column-aligned on the `=` sign.
 - **Minimal space after commas**: Method calls and declarations use `(param1,param2)` with no space after commas in most cases, or a single space after commas when it improves readability.
 
@@ -151,10 +185,10 @@ All setters return `this` (or the concrete subclass type) to enable method chain
 
 ```java
 @Override
-public HandleInputReply
+public HandleEchoInputReply
 setSuccess(boolean success)
 {
-    return (HandleInputReply)super.setSuccess(success);
+    return (HandleEchoInputReply)super.setSuccess(success);
 }
 ```
 
@@ -162,7 +196,7 @@ Fluent style is also used for context mutation methods and builder patterns:
 
 ```java
 return
-    new HandleInputReply(context.getRequest())
+    new HandleEchoInputReply(request)
         .setSuccess(true)
         .setSuccessMessage("input handled successfully")
         .setOutput(context.getOutput());
@@ -178,7 +212,7 @@ Prefer explicit `for` loops for simple iteration. Use streams with `Collectors` 
 
 ### Validation
 
-Each pipeline starts with a `validate` step. Use `Objects.requireNonNull` for required fields and throw `IllegalArgumentException` for empty collections.
+Each pipeline starts with a `validate` step. The standard `validate` methods are overridable in the abstract service. Per-subject validators are passed to the template helpers and may call the standard `validate` first. Use `Objects.requireNonNull` for required fields and throw `IllegalArgumentException` for empty collections.
 
 ### TypeScript Array Types
 

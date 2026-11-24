@@ -1,6 +1,6 @@
 {
   "name": "strata.frontendcontroller.client",
-  "version": "0.0.0-snapshot.1792679818003",
+  "version": "0.0.0-snapshot.1793038489210",
   "license": "Apache-2.0",
   "scripts": {
     "increment-snapshot": "npm-prerelease-timestamp -v 0.0.0",

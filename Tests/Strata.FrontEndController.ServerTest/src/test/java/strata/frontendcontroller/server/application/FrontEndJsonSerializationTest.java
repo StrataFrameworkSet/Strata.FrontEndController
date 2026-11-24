@@ -4,19 +4,19 @@
 
 package strata.frontendcontroller.server.application;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import strata.foundation.core.mapper.ObjectMapperSupplier;
-import strata.frontendcontroller.service.requestreply.FrontEndInput;
-import strata.frontendcontroller.service.requestreply.FrontEndInputMapper;
-import strata.frontendcontroller.service.requestreply.FrontEndOutput;
-import strata.frontendcontroller.service.requestreply.FrontEndOutputMapper;
-import strata.frontendcontroller.service.requestreply.GetOutputReply;
-import strata.frontendcontroller.service.requestreply.HandleInputReply;
-import strata.frontendcontroller.service.requestreply.HandleInputRequest;
+import strata.frontendcontroller.service.sample.EchoInput;
+import strata.frontendcontroller.service.sample.EchoOutput;
+import strata.frontendcontroller.service.sample.GetEchoOutputReply;
+import strata.frontendcontroller.service.sample.GetEchoOutputRequest;
+import strata.frontendcontroller.service.sample.HandleEchoInputReply;
+import strata.frontendcontroller.service.sample.HandleEchoInputRequest;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -35,154 +35,156 @@ class FrontEndJsonSerializationTest
     setUp()
     {
         mapper = new ObjectMapperSupplier().get();
-        mapper.registerSubtypes(TestInput.class,TestOutput.class);
     }
 
     @Test
     public void
-    testInputRoundTrip() throws Exception
-    {
-        TestInput input = createInput();
-
-        String json = mapper.writeValueAsString(input);
-
-        FrontEndInput result = mapper.readValue(json,FrontEndInput.class);
-
-        TestInput actual = assertInstanceOf(TestInput.class,result);
-        assertEquals(input.getUserId(),actual.getUserId());
-        assertEquals(input.getSource(),actual.getSource());
-        assertEquals(input.getCommand(),actual.getCommand());
-        assertEquals(Optional.of("dest"),actual.getDestination());
-        assertEquals(input.getPayload(),actual.getPayload());
-    }
-
-    @Test
-    public void
-    testOutputRoundTrip() throws Exception
-    {
-        TestOutput output = createOutput();
-
-        String json = mapper.writeValueAsString(output);
-
-        FrontEndOutput result = mapper.readValue(json,FrontEndOutput.class);
-
-        TestOutput actual = assertInstanceOf(TestOutput.class,result);
-        assertEquals(output.getUserId(),actual.getUserId());
-        assertEquals(output.getSource(),actual.getSource());
-        assertEquals(Optional.of("cmd"),actual.getCommand());
-        assertEquals(output.getDestination(),actual.getDestination());
-        assertEquals(output.getPayload(),actual.getPayload());
-    }
-
-    @Test
-    public void
-    testHandleInputRequestRoundTrip() throws Exception
+    testHandleEchoInputRequestRoundTrip() throws Exception
     {
         UUID    requestId = UUID.randomUUID();
         Instant timestamp = Instant.parse("2024-01-02T03:04:05Z");
 
-        HandleInputRequest request = new HandleInputRequest();
-        request.setRequestId(requestId);
-        request.setTimestamp(timestamp);
-        request.setInput(createInput());
+        HandleEchoInputRequest request =
+            new HandleEchoInputRequest()
+                .setRequestId(requestId)
+                .setTimestamp(timestamp)
+                .setInput(createInput());
 
         String json = mapper.writeValueAsString(request);
 
-        HandleInputRequest result = mapper.readValue(json,HandleInputRequest.class);
+        HandleEchoInputRequest result = mapper.readValue(json,HandleEchoInputRequest.class);
 
         assertEquals(requestId,result.getRequestId());
         assertEquals(timestamp,result.getTimestamp());
-        TestInput actual = assertInstanceOf(TestInput.class,result.getInput());
-        assertEquals(42L,actual.getUserId());
-        assertEquals("src",actual.getSource());
-        assertEquals("cmd",actual.getCommand());
-        assertEquals(Optional.of("dest"),actual.getDestination());
-        assertEquals("input-payload",actual.getPayload());
-        assertTrue(FrontEndInputMapper.of().map(TestInput.class,result).isPresent());
+        assertEquals("input-text",result.getInput().getText());
+        assertEquals(42L,result.getInput().getUserId());
+        assertEquals("src",result.getInput().getSource());
+        assertEquals("cmd",result.getInput().getCommand());
+        assertEquals(Optional.of("dest"),result.getInput().getDestination());
     }
 
     @Test
     public void
-    testHandleInputReplyRoundTrip() throws Exception
+    testHandleEchoInputRequestIgnoresUnknownInputProperty() throws Exception
     {
-        HandleInputReply reply = new HandleInputReply();
-        reply.setInput(createInput());
-        reply.setOutput(createOutput());
+        ObjectNode node = mapper.valueToTree(new HandleEchoInputRequest().setInput(createInput()));
+        ((ObjectNode)node.get("input")).put("unknownInput","y");
+
+        String json = mapper.writeValueAsString(node);
+
+        HandleEchoInputRequest result = mapper.readValue(json,HandleEchoInputRequest.class);
+
+        assertEquals("input-text",result.getInput().getText());
+    }
+
+    @Test
+    public void
+    testHandleEchoInputRequestRejectsUnknownTopLevelProperty()
+    {
+        ObjectNode node = mapper.valueToTree(new HandleEchoInputRequest().setInput(createInput()));
+        node.put("unknownTopLevel","x");
+
+        assertThrows(
+            UnrecognizedPropertyException.class,
+            () -> mapper.readValue(mapper.writeValueAsString(node),HandleEchoInputRequest.class));
+    }
+
+    @Test
+    public void
+    testHandleEchoInputReplyRoundTrip() throws Exception
+    {
+        HandleEchoInputReply reply =
+            new HandleEchoInputReply()
+                .setInput(createInput())
+                .setOutput(createOutput());
 
         String json = mapper.writeValueAsString(reply);
 
-        HandleInputReply result = mapper.readValue(json,HandleInputReply.class);
+        HandleEchoInputReply result = mapper.readValue(json,HandleEchoInputReply.class);
 
-        TestInput input = assertInstanceOf(TestInput.class,result.getInput());
-        TestOutput output = assertInstanceOf(TestOutput.class,result.getOutput());
-        assertEquals("input-payload",input.getPayload());
-        assertEquals("output-payload",output.getPayload());
-        assertTrue(FrontEndInputMapper.of().map(TestInput.class,result).isPresent());
-        assertTrue(FrontEndOutputMapper.of().map(TestOutput.class,result).isPresent());
+        assertInstanceOf(EchoInput.class,result.getInput());
+        assertInstanceOf(EchoOutput.class,result.getOutput());
+        assertEquals("input-text",result.getInput().getText());
+        assertEquals("output-text",result.getOutput().getText());
     }
 
     @Test
     public void
-    testGetOutputReplyRoundTrip() throws Exception
+    testGetEchoOutputRequestRoundTrip() throws Exception
     {
-        GetOutputReply reply = new GetOutputReply();
-        reply.setOutput(createOutput());
+        UUID    requestId = UUID.randomUUID();
+        Instant timestamp = Instant.parse("2024-01-02T03:04:05Z");
+
+        GetEchoOutputRequest request =
+            new GetEchoOutputRequest()
+                .setRequestId(requestId)
+                .setTimestamp(timestamp)
+                .setUserId(42L)
+                .setSource("src")
+                .setCommand("cmd")
+                .setDestination("dest");
+
+        String json = mapper.writeValueAsString(request);
+
+        GetEchoOutputRequest result = mapper.readValue(json,GetEchoOutputRequest.class);
+
+        assertEquals(requestId,result.getRequestId());
+        assertEquals(timestamp,result.getTimestamp());
+        assertEquals(42L,result.getUserId());
+        assertEquals("src",result.getSource());
+        assertEquals("cmd",result.getCommand());
+        assertEquals("dest",result.getDestination());
+    }
+
+    @Test
+    public void
+    testGetEchoOutputReplyRoundTrip() throws Exception
+    {
+        GetEchoOutputReply reply = new GetEchoOutputReply().setOutput(createOutput());
 
         String json = mapper.writeValueAsString(reply);
 
-        GetOutputReply result = mapper.readValue(json,GetOutputReply.class);
+        GetEchoOutputReply result = mapper.readValue(json,GetEchoOutputReply.class);
 
-        TestOutput actual = assertInstanceOf(TestOutput.class,result.getOutput());
-        assertEquals(42L,actual.getUserId());
-        assertEquals("src",actual.getSource());
-        assertEquals(Optional.of("cmd"),actual.getCommand());
-        assertEquals("dest",actual.getDestination());
-        assertEquals("output-payload",actual.getPayload());
-        assertTrue(FrontEndOutputMapper.of().map(TestOutput.class,result).isPresent());
+        assertInstanceOf(EchoOutput.class,result.getOutput());
+        assertEquals(42L,result.getOutput().getUserId());
+        assertEquals("src",result.getOutput().getSource());
+        assertEquals(Optional.of("cmd"),result.getOutput().getCommand());
+        assertEquals("output-text",result.getOutput().getText());
     }
 
     @Test
     public void
-    testNoTypeDiscriminatorWritten() throws Exception
+    testNoTypeProperty() throws Exception
     {
         String json = mapper.writeValueAsString(createInput());
 
-        assertFalse(json.contains("@class"));
-        assertFalse(json.contains("@type"));
+        assertFalse(json.contains("\"@type\""));
+        assertFalse(json.contains("\"type\""));
     }
 
-    @Test
-    public void
-    testDeserializationFailsWithoutRegisteredSubtypes() throws Exception
-    {
-        ObjectMapper plain = new ObjectMapperSupplier().get();
-        String       json  = plain.writeValueAsString(createInput());
-
-        assertThrows(JsonProcessingException.class,() -> plain.readValue(json,FrontEndInput.class));
-    }
-
-    private TestInput
+    private EchoInput
     createInput()
     {
-        TestInput input = new TestInput();
-        input.setUserId(42L);
-        input.setSource("src");
-        input.setCommand("cmd");
-        input.setDestination("dest");
-        input.setPayload("input-payload");
-        return input;
+        return
+            new EchoInput()
+                .setUserId(42L)
+                .setSource("src")
+                .setCommand("cmd")
+                .setDestination("dest")
+                .setText("input-text");
     }
 
-    private TestOutput
+    private EchoOutput
     createOutput()
     {
-        TestOutput output = new TestOutput();
-        output.setUserId(42L);
-        output.setSource("src");
-        output.setCommand("cmd");
-        output.setDestination("dest");
-        output.setPayload("output-payload");
-        return output;
+        return
+            new EchoOutput()
+                .setUserId(42L)
+                .setSource("src")
+                .setCommand("cmd")
+                .setDestination("dest")
+                .setText("output-text");
     }
 }
 

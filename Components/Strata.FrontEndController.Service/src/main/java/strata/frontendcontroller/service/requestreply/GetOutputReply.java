@@ -10,11 +10,11 @@ import strata.foundation.core.transfer.ExceptionData;
 import java.time.Instant;
 import java.util.UUID;
 
-public
-class GetOutputReply
+public abstract
+class GetOutputReply<O extends FrontEndOutput>
     extends AbstractServiceReply
 {
-    private FrontEndOutput output;
+    private O output;
 
     public
     GetOutputReply()
@@ -31,62 +31,62 @@ class GetOutputReply
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setReplyId(UUID replyId)
     {
-        return (GetOutputReply)super.setReplyId(replyId);
+        return (GetOutputReply<O>)super.setReplyId(replyId);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setOriginatingRequestId(UUID requestId)
     {
-        return (GetOutputReply)super.setOriginatingRequestId(requestId);
+        return (GetOutputReply<O>)super.setOriginatingRequestId(requestId);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setTimestamp(Instant timestamp)
     {
-        return (GetOutputReply)super.setTimestamp(timestamp);
+        return (GetOutputReply<O>)super.setTimestamp(timestamp);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setSuccess(boolean success)
     {
-        return (GetOutputReply)super.setSuccess(success);
+        return (GetOutputReply<O>)super.setSuccess(success);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setSuccessMessage(String successMessage)
     {
-        return (GetOutputReply)super.setSuccessMessage(successMessage);
+        return (GetOutputReply<O>)super.setSuccessMessage(successMessage);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setFailureMessage(String failureMessage)
     {
-        return (GetOutputReply)super.setFailureMessage(failureMessage);
+        return (GetOutputReply<O>)super.setFailureMessage(failureMessage);
     }
 
     @Override
-    public GetOutputReply
+    public GetOutputReply<O>
     setException(ExceptionData exception)
     {
-        return (GetOutputReply)super.setException(exception);
+        return (GetOutputReply<O>)super.setException(exception);
     }
 
-    public GetOutputReply
-    setOutput(FrontEndOutput output)
+    public GetOutputReply<O>
+    setOutput(O output)
     {
         this.output = output;
         return this;
     }
 
-    public FrontEndOutput
+    public O
     getOutput() { return output; }
 }
 

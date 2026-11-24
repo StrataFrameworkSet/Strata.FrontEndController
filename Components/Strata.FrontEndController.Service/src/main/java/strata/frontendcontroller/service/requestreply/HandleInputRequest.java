@@ -10,11 +10,11 @@ import strata.foundation.core.transfer.Cookie;
 import java.time.Instant;
 import java.util.UUID;
 
-public
-class HandleInputRequest
+public abstract
+class HandleInputRequest<I extends FrontEndInput>
     extends AbstractServiceRequest
 {
-    private FrontEndInput input;
+    private I input;
 
     public
     HandleInputRequest()
@@ -24,55 +24,55 @@ class HandleInputRequest
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     setRequestId(UUID requestId)
     {
-        return (HandleInputRequest)super.setRequestId(requestId);
+        return (HandleInputRequest<I>)super.setRequestId(requestId);
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     setTimestamp(Instant timestamp)
     {
-        return (HandleInputRequest)super.setTimestamp(timestamp);
+        return (HandleInputRequest<I>)super.setTimestamp(timestamp);
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     addHeader(String name,Object value)
     {
-        return (HandleInputRequest)super.addHeader(name,value);
+        return (HandleInputRequest<I>)super.addHeader(name,value);
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     clearHeaders()
     {
-        return (HandleInputRequest)super.clearHeaders();
+        return (HandleInputRequest<I>)super.clearHeaders();
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     addCookie(Cookie cookie)
     {
-        return (HandleInputRequest)super.addCookie(cookie);
+        return (HandleInputRequest<I>)super.addCookie(cookie);
     }
 
     @Override
-    public HandleInputRequest
+    public HandleInputRequest<I>
     clearCookies()
     {
-        return (HandleInputRequest)super.clearCookies();
+        return (HandleInputRequest<I>)super.clearCookies();
     }
 
-    public HandleInputRequest
-    setInput(FrontEndInput input)
+    public HandleInputRequest<I>
+    setInput(I input)
     {
         this.input = input;
         return this;
     }
 
-    public FrontEndInput
+    public I
     getInput() { return input; }
 }
 

@@ -4,8 +4,7 @@
 
 package strata.frontendcontroller.servicehost.main;
 
-import strata.frontendcontroller.server.configuration.AdminFrontEndControllerConfiguration;
-import strata.frontendcontroller.server.configuration.UserFrontEndControllerConfiguration;
+import strata.frontendcontroller.server.sample.EchoFrontEndControllerConfiguration;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.providers.ObjectMapperProvider;
@@ -34,8 +33,7 @@ import strata.server.spring.service.ServiceConfiguration;
     scheme = "bearer")
  */
 @Import({
-    UserFrontEndControllerConfiguration.class,
-    AdminFrontEndControllerConfiguration.class,
+    EchoFrontEndControllerConfiguration.class,
     ServiceConfiguration.class,
     SpringDocConfigProperties.class,
     StrataModelResolver.class})
@@ -157,6 +155,7 @@ class HostConfiguration
                     "/health/**")
                 .packagesToScan(
                     "strata.frontendcontroller.server.platform",
+                    "strata.frontendcontroller.server.sample",
                     "strata.server.spring.health")
                 .build();
     }

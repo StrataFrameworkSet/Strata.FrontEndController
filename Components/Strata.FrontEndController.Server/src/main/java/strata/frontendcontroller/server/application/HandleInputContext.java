@@ -9,32 +9,35 @@ import strata.frontendcontroller.service.requestreply.FrontEndOutput;
 import strata.frontendcontroller.service.requestreply.HandleInputRequest;
 
 public
-class HandleInputContext
+class HandleInputContext<I extends FrontEndInput,O extends FrontEndOutput>
 {
-    private HandleInputRequest request;
-    private FrontEndOutput     output;
+    private final HandleInputRequest<I> request;
+    private O                           output;
 
     public
-    HandleInputContext(HandleInputRequest req)
+    HandleInputContext(HandleInputRequest<I> req)
     {
         request = req;
         output  = null;
     }
 
-    public HandleInputContext
-    setOutput(FrontEndOutput out)
+    public HandleInputContext<I,O>
+    setOutput(O out)
     {
         output = out;
         return this;
     }
 
-    public HandleInputRequest
+    public HandleInputRequest<I>
     getRequest() { return request; }
 
-    public FrontEndInput
+    public I
     getInput() { return request.getInput(); }
 
-    public FrontEndOutput
+    public String
+    getKey() { return getInput().getKey(); }
+
+    public O
     getOutput() { return output; }
 }
 

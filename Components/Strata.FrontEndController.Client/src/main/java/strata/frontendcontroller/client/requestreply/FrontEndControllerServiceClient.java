@@ -19,12 +19,20 @@ class FrontEndControllerServiceClient
     extends AbstractRestClient
     implements IFrontEndControllerServiceClient
 {
+    public static final String USER_SERVICE_PATH  = "frontendcontroller-user-service/";
+    public static final String ADMIN_SERVICE_PATH = "frontendcontroller-admin-service/";
+
     public FrontEndControllerServiceClient(String baseUrl)
+    {
+        this(baseUrl,USER_SERVICE_PATH);
+    }
+
+    public FrontEndControllerServiceClient(String baseUrl,String servicePath)
     {
         super(
             createBuilder(),
             preprocessBaseUrl(baseUrl),
-            "frontendcontroller-service/");
+            preprocessBaseUrl(servicePath));
     }
 
     @Override

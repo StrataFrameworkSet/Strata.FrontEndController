@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'java-test-fixtures'
-    id "com.google.cloud.tools.jib" version "3.4.2"
+    id "com.google.cloud.tools.jib" version "3.5.4"
 }
 
 sourceSets {
@@ -31,7 +31,7 @@ dependencies {
     api project(':Components:Strata.FrontEndController.Service')
     api project(':Components:Strata.FrontEndController.Server')
     api project(':Components:Strata.FrontEndController.Client')
-    implementation project(path: ':Tests:Strata.FrontEndController.ServiceTest', configuration: 'testArtifacts')
+    implementation(testFixtures(project(':Tests:Strata.FrontEndController.ServiceTest')))
     implementation project(path: ':Tests:Strata.FrontEndController.ServerTest', configuration: 'testArtifacts')
     implementation project(path: ':Tests:Strata.FrontEndController.ClientTest', configuration: 'testArtifacts')
      implementation 'org.slf4j:slf4j-reload4j:2.0.17'
@@ -76,8 +76,7 @@ jib {
         }
     }
     to {
-        image = "ghcr.io/johnliebenau/strata/strata-foundation-testsuite"
-        tags = ["${version}","latest"]
+        image = "ghcr.io/johnliebenau/strata/strata-frontendcontroller-testsuite"
         auth {
             username = "$System.env.REPOSITORY_USER"
             password = "$System.env.REPOSITORY_PASSWORD"
@@ -85,7 +84,7 @@ jib {
     }
     containerizingMode = 'packaged'
     container {
-        environment = [DEPLOY_ENV:"test",PROPERTIES_ENCRYPTION_KEY:"$System.env.PROPERTIES_ENCRYPTION_KEY".toString()]
+        environment = [DEPLOY_ENV:"test"]
         jvmFlags = [
                 '-Xmx1024m',
                 '--add-opens=java.base/java.lang=ALL-UNNAMED',
@@ -108,6 +107,7 @@ jib {
         format = 'OCI'
     }
 }
+apply from: rootProject.file('gradle/strata-image.gradle')
 
 task printJibClasspath {
     doLast {
@@ -130,4 +130,4 @@ task printJibClasspath {
 
 tasks.named('build') {
     finalizedBy('jib')
-}
+}

@@ -6,7 +6,7 @@ Strata.FrontEndController is a Spring Boot microservice that provides the front-
 
 ## Technology Stack
 
-- **Language**: Java 22 (Amazon Corretto), TypeScript
+- **Language**: Java 23 (Amazon Corretto), TypeScript
 - **Build**: Gradle (multi-project), Yarn (TypeScript components)
 - **Framework**: Spring Boot 3.4, Spring 6.2
 - **Object Mapping**: ModelMapper 3.2
@@ -77,13 +77,15 @@ The server-side implementation:
 
 REST client implementations:
 
-- **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient`
+- **Request/Reply clients** (Java): `FrontEndControllerServiceClient` extending `AbstractRestClient` — `FrontEndControllerServiceClient(baseUrl)` targets the user service; `FrontEndControllerServiceClient(baseUrl,ADMIN_SERVICE_PATH)` targets the admin service
 - **Client interfaces** (Java): `IFrontEndControllerServiceClient`
 - **TypeScript mirror**: `FrontEndControllerServiceClient` with corresponding interface
 
 ### Applications
 
-- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `UserFrontEndControllerConfiguration`, `AdminFrontEndControllerConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+- **FrontEndControllerServiceHost** — Spring Boot application that assembles the service-side stack: `HostConfiguration` imports `HostUserConfiguration`, `HostAdminConfiguration`, and `ServiceConfiguration`. Listens on port 8081.
+  - `HostUserConfiguration` / `HostAdminConfiguration` extend the audience configurations (whose `*RequestProcessor` and `*Executor` beans must be overridden by the application). Each supplies a virtual-thread `Executor` and a `HostRequestProcessor` (a `DefaultRequestProcessor`) built from the `IProcessAction` beans qualified with Spring `@Qualifier("User")` / `@Qualifier("Admin")`; the bean name is the action key. No actions are registered by default.
+  - `IntegrationTestConfiguration` (`@Profile("integration-test")`) registers a user `test-source` get-output action for the `IntegrationStage` tests; the build pipeline starts the ServiceHost image with `SPRING_PROFILES_ACTIVE=integration-test`.
 
 ## Commonly Used Design Patterns
 
@@ -119,6 +121,26 @@ Spring `@Configuration` classes are composed via `@Import`. A base `PlatformConf
 |---|---|---|
 | `POST /handle-input` | `HandleInputRequest` | `HandleInputReply` |
 | `POST /get-output` | `GetOutputRequest` | `GetOutputReply` |
+
+## Versioning and Release
+
+| | Development snapshot | Release |
+|---|---|---|
+| Maven jars | `X.Y.0-SNAPSHOT` (e.g. `1.0.0-SNAPSHOT`) | `X.Y.0` (e.g. `1.0.0`) |
+| npm packages | `X.Y.0-snapshot.<timestamp>`, dist-tag `snapshot-X.Y.0` | `X.Y.0-release.<timestamp>`, dist-tags `release-X.Y.0` and `latest` |
+| Docker images | `X.Y.0-<yyyyMMddHHmmss>` (one per pipeline run) | `X.Y.0` |
+
+- The version is set by `major`/`minor`/`patch` in the root `build.gradle`. The npm version base is set by `increment-snapshot` and the `snapshot-X.Y.0` publish tag in each TypeScript component.
+- `.github/workflows/build-pipeline.yml` runs on `development` and `release-*` (pull requests build and test only). Its stages are:
+  - **commit**: Gradle build and test, push the ServiceHost and TestSuite images (tagged by `gradle/strata-image.gradle` from `BUILD_IMAGE_TAG`), and publish the npm snapshots of `strata.frontendcontroller.service` and `.client`
+  - **integration**: run the ServiceHost image and the TestSuite image's `IntegrationStage` tests against it
+  - **acceptance**: a placeholder
+  - **deploy**: publish the snapshot jars (`strata-frontendcontroller-service`, `-client`, `-server`, `-testsuite`) to GitHub Packages
+- Locally, `./gradlew build` skips Jib unless `BUILD_IMAGE_TAG` is set to `<version>-<yyyyMMddHHmmss>`.
+- A release is made on a `release-X.Y` branch:
+  - its last snapshot is promoted to the release version with `strata-frontendcontroller-promote.ps1` / `strata-frontendcontroller-promote.sh` (run with `--dry-run` / `-DryRun` first). Jars are republished as `X.Y.0`, npm packages get their `strata.*` dependencies pinned to exact release versions, and the newest `X.Y.0-<timestamp>` images (or `--image-tag` / `-ImageTag`) are tagged `X.Y.0`
+  - `development` then moves on to the next minor version
+- Strata.FrontEndController 1.0.0 depends on the Strata 1.0.0 releases (Maven `strata-foundation-core`, `strata-server-spring`, `strata-client-core`/`-spring` `1.0.0`; npm `strata.foundation.core`/`strata.client.core@release-1.0.0`).
 
 ## Preferred Coding Style and Idioms
 

@@ -6,7 +6,7 @@ Strata.FrontEndController is a Spring Boot microservice that provides the front-
 
 ## Technology Stack
 
-- **Language**: Java 22 (Amazon Corretto), TypeScript
+- **Language**: Java 23 (Amazon Corretto), TypeScript
 - **Build**: Gradle (multi-project), Yarn (TypeScript components)
 - **Framework**: Spring Boot 3.4, Spring 6.2
 - **Object Mapping**: ModelMapper 3.2

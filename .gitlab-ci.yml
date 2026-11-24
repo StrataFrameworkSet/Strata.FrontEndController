@@ -79,7 +79,7 @@ java-commit-stage:
   stage: commit
   needs:
     - job: validate-env-vars
-  image: amazoncorretto:22
+  image: amazoncorretto:23
   cache:
     key:
       files:

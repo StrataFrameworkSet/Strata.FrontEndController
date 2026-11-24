@@ -2,8 +2,8 @@ import {AbstractServiceReply} from "strata.foundation.core/Transfer";
 import {FrontEndOutput} from "./FrontEndOutput";
 
 export
-interface GetOutputReply
+interface GetOutputReply<O extends FrontEndOutput>
     extends AbstractServiceReply
 {
-    output: FrontEndOutput;
+    output: O;
 }

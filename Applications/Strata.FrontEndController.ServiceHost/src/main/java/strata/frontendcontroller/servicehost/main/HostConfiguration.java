@@ -4,6 +4,7 @@
 
 package strata.frontendcontroller.servicehost.main;
 
+import strata.frontendcontroller.server.sample.EchoFrontEndControllerConfiguration;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.providers.ObjectMapperProvider;
@@ -32,8 +33,7 @@ import strata.server.spring.service.ServiceConfiguration;
     scheme = "bearer")
  */
 @Import({
-    HostUserConfiguration.class,
-    HostAdminConfiguration.class,
+    EchoFrontEndControllerConfiguration.class,
     ServiceConfiguration.class,
     SpringDocConfigProperties.class,
     StrataModelResolver.class})
@@ -151,11 +151,11 @@ class HostConfiguration
                 .builder()
                 .group("FrontEndController")
                 .pathsToMatch(
-                    "/frontendcontroller-user-service/**",
-                    "/frontendcontroller-admin-service/**",
+                    "/frontendcontroller-service/**",
                     "/health/**")
                 .packagesToScan(
                     "strata.frontendcontroller.server.platform",
+                    "strata.frontendcontroller.server.sample",
                     "strata.server.spring.health")
                 .build();
     }

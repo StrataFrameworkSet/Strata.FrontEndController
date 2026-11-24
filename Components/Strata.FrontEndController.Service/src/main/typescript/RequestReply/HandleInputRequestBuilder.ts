@@ -3,10 +3,10 @@ import type {HandleInputRequest}      from "./HandleInputRequest";
 import type {FrontEndInput}           from "./FrontEndInput";
 
 export
-class HandleInputRequestBuilder
-    extends AbstractServiceRequestBuilder<HandleInputRequest>
+class HandleInputRequestBuilder<I extends FrontEndInput>
+    extends AbstractServiceRequestBuilder<HandleInputRequest<I>>
 {
-    private input: FrontEndInput;
+    private input: I;
 
     constructor()
     {
@@ -14,20 +14,20 @@ class HandleInputRequestBuilder
         this.input = null;
     }
 
-    setInput(input: FrontEndInput): HandleInputRequestBuilder
+    setInput(input: I): HandleInputRequestBuilder<I>
     {
         this.input = input;
         return this;
     }
 
-    getInput(): FrontEndInput
+    getInput(): I
     {
         return this.input;
     }
 
-    build(): HandleInputRequest
+    build(): HandleInputRequest<I>
     {
-        const request: HandleInputRequest =
+        const request: HandleInputRequest<I> =
             {
                 requestId: this.getRequestId(),
                 timestamp: this.getTimestamp().toString(),
@@ -37,8 +37,8 @@ class HandleInputRequestBuilder
         return request;
     }
 
-    public static newBuilder(): HandleInputRequestBuilder
+    public static newBuilder<I extends FrontEndInput>(): HandleInputRequestBuilder<I>
     {
-        return new HandleInputRequestBuilder();
+        return new HandleInputRequestBuilder<I>();
     }
 }

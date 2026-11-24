@@ -4,13 +4,14 @@
 
 package strata.frontendcontroller.service.requestreply;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import strata.foundation.core.transfer.AbstractServiceRequest;
 import strata.foundation.core.transfer.Cookie;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public
+public abstract
 class GetOutputRequest
     extends AbstractServiceRequest
 {
@@ -110,6 +111,13 @@ class GetOutputRequest
 
     public String
     getDestination() { return destination; }
+
+    @JsonIgnore
+    public String
+    getKey()
+    {
+        return KeyBuilder.build(source,command,destination);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////

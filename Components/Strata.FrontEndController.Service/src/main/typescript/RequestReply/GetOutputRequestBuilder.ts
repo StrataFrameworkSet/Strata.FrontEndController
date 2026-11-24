@@ -7,6 +7,7 @@ class GetOutputRequestBuilder
 {
     private userId:      number;
     private source:      string;
+    private command:     string;
     private destination: string;
 
     constructor()
@@ -14,6 +15,7 @@ class GetOutputRequestBuilder
         super();
         this.userId      = null;
         this.source      = null;
+        this.command     = null;
         this.destination = null;
     }
 
@@ -26,6 +28,12 @@ class GetOutputRequestBuilder
     setSource(source: string): GetOutputRequestBuilder
     {
         this.source = source;
+        return this;
+    }
+
+    setCommand(command: string): GetOutputRequestBuilder
+    {
+        this.command = command;
         return this;
     }
 
@@ -45,6 +53,11 @@ class GetOutputRequestBuilder
         return this.source;
     }
 
+    getCommand(): string
+    {
+        return this.command;
+    }
+
     getDestination(): string
     {
         return this.destination;
@@ -58,6 +71,7 @@ class GetOutputRequestBuilder
                 timestamp:   this.getTimestamp().toString(),
                 userId:      this.getUserId(),
                 source:      this.getSource(),
+                command:     this.getCommand(),
                 destination: this.getDestination()
             };
 

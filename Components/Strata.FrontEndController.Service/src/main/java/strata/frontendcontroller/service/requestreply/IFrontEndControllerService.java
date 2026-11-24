@@ -4,16 +4,9 @@
 
 package strata.frontendcontroller.service.requestreply;
 
-import java.util.concurrent.CompletionStage;
-
 public
 interface IFrontEndControllerService
 {
-    CompletionStage<HandleInputReply>
-    handleInput(HandleInputRequest request);
-
-    CompletionStage<GetOutputReply>
-    getOutput(GetOutputRequest request);
 }
 
 //////////////////////////////////////////////////////////////////////////////

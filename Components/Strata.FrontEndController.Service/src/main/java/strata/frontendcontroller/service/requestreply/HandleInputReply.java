@@ -10,22 +10,23 @@ import strata.foundation.core.transfer.ExceptionData;
 import java.time.Instant;
 import java.util.UUID;
 
-public
-class HandleInputReply
+public abstract
+class HandleInputReply<I extends FrontEndInput,O extends FrontEndOutput>
     extends AbstractServiceReply
 {
-    private FrontEndInput input;
-    private FrontEndOutput output;
+    private I input;
+    private O output;
 
-
-    public HandleInputReply()
+    public
+    HandleInputReply()
     {
         super();
         input  = null;
         output = null;
     }
 
-    public HandleInputReply(HandleInputRequest originatingRequest)
+    public
+    HandleInputReply(HandleInputRequest<I> originatingRequest)
     {
         super(originatingRequest);
         input  = originatingRequest.getInput();
@@ -33,72 +34,72 @@ class HandleInputReply
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setReplyId(UUID replyId)
     {
-        return (HandleInputReply)super.setReplyId(replyId);
+        return (HandleInputReply<I,O>)super.setReplyId(replyId);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setOriginatingRequestId(UUID requestId)
     {
-        return (HandleInputReply)super.setOriginatingRequestId(requestId);
+        return (HandleInputReply<I,O>)super.setOriginatingRequestId(requestId);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setTimestamp(Instant timestamp)
     {
-        return (HandleInputReply)super.setTimestamp(timestamp);
+        return (HandleInputReply<I,O>)super.setTimestamp(timestamp);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setSuccess(boolean success)
     {
-        return (HandleInputReply)super.setSuccess(success);
+        return (HandleInputReply<I,O>)super.setSuccess(success);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setSuccessMessage(String successMessage)
     {
-        return (HandleInputReply)super.setSuccessMessage(successMessage);
+        return (HandleInputReply<I,O>)super.setSuccessMessage(successMessage);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setFailureMessage(String failureMessage)
     {
-        return (HandleInputReply)super.setFailureMessage(failureMessage);
+        return (HandleInputReply<I,O>)super.setFailureMessage(failureMessage);
     }
 
     @Override
-    public HandleInputReply
+    public HandleInputReply<I,O>
     setException(ExceptionData exception)
     {
-        return (HandleInputReply)super.setException(exception);
+        return (HandleInputReply<I,O>)super.setException(exception);
     }
 
-    public HandleInputReply
-    setInput(FrontEndInput input)
+    public HandleInputReply<I,O>
+    setInput(I input)
     {
         this.input = input;
         return this;
     }
 
-    public HandleInputReply
-    setOutput(FrontEndOutput output)
+    public HandleInputReply<I,O>
+    setOutput(O output)
     {
         this.output = output;
         return this;
     }
 
-    public FrontEndInput
+    public I
     getInput() { return input; }
 
-    public FrontEndOutput
+    public O
     getOutput() { return output; }
 }
 

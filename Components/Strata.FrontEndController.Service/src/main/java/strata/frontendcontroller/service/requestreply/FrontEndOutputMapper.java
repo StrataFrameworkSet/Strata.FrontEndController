@@ -23,7 +23,7 @@ class FrontEndOutputMapper
     }
 
     public <T extends FrontEndOutput> Optional<T>
-    map(Class<T> type,GetOutputReply reply)
+    map(Class<T> type,GetOutputReply<?> reply)
     {
         try
         {
@@ -36,7 +36,7 @@ class FrontEndOutputMapper
     }
 
     public <T extends FrontEndOutput> Optional<T>
-    map(Class<T> type,HandleInputReply reply)
+    map(Class<T> type,HandleInputReply<?,?> reply)
     {
         try
         {

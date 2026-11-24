@@ -6,29 +6,28 @@ package strata.frontendcontroller.server.application;
 
 import strata.frontendcontroller.service.requestreply.FrontEndOutput;
 import strata.frontendcontroller.service.requestreply.GetOutputRequest;
-import strata.frontendcontroller.service.requestreply.KeyBuilder;
 
 public
-class GetOutputContext
+class GetOutputContext<R extends GetOutputRequest,O extends FrontEndOutput>
 {
-    private GetOutputRequest request;
-    private FrontEndOutput   output;
+    private final R request;
+    private O       output;
 
     public
-    GetOutputContext(GetOutputRequest req)
+    GetOutputContext(R req)
     {
         request = req;
         output  = null;
     }
 
-    public GetOutputContext
-    setOutput(FrontEndOutput out)
+    public GetOutputContext<R,O>
+    setOutput(O out)
     {
         output = out;
         return this;
     }
 
-    public GetOutputRequest
+    public R
     getRequest() { return request; }
 
     public Long
@@ -44,12 +43,9 @@ class GetOutputContext
     getDestination() { return request.getDestination(); }
 
     public String
-    getKey()
-    {
-        return KeyBuilder.build(getSource(),getCommand(),getDestination());
-    }
+    getKey() { return request.getKey(); }
 
-    public FrontEndOutput
+    public O
     getOutput() { return output; }
 }
 

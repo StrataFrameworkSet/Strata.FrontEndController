@@ -1,49 +1,31 @@
 //////////////////////////////////////////////////////////////////////////////
-// FrontEndControllerServiceController.java
+// AbstractFrontEndControllerServiceController.java
 //////////////////////////////////////////////////////////////////////////////
 
 package strata.frontendcontroller.server.platform;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import strata.frontendcontroller.service.requestreply.*;
-
-import java.util.concurrent.CompletionStage;
+import strata.frontendcontroller.service.requestreply.IFrontEndControllerService;
 
 public abstract
-class AbstractFrontEndControllerServiceController
+class AbstractFrontEndControllerServiceController<S extends IFrontEndControllerService>
 {
-    private IFrontEndControllerService implementation;
-    private Logger                     logger;
+    private final S      service;
+    private final Logger logger;
 
     protected
-    AbstractFrontEndControllerServiceController(IFrontEndControllerService imp)
+    AbstractFrontEndControllerServiceController(S service)
     {
-        implementation = imp;
-        logger = LogManager.getLogger(AbstractFrontEndControllerServiceController.class);
+        this.service = service;
+        this.logger  = LogManager.getLogger(AbstractFrontEndControllerServiceController.class);
     }
 
-    @PostMapping(
-        value = "/handle-input",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody CompletionStage<HandleInputReply>
-    handleInput(@RequestBody HandleInputRequest request)
-    {
-        logger.info("delegating handleInput to implementation service");
-        return implementation.handleInput(request);
-    }
+    protected S
+    getService() { return service; }
 
-    @PostMapping(
-        value = "/get-output",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody CompletionStage<GetOutputReply>
-    getOutput(@RequestBody GetOutputRequest request)
-    {
-        logger.info("delegating getOutput to implementation service");
-        return implementation.getOutput(request);
-    }
+    protected Logger
+    getLogger() { return logger; }
 }
 
 //////////////////////////////////////////////////////////////////////////////

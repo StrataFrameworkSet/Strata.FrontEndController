@@ -23,7 +23,7 @@ class FrontEndInputMapper
     }
 
     public <T extends FrontEndInput> Optional<T>
-    map(Class<T> type,HandleInputRequest request)
+    map(Class<T> type,HandleInputRequest<?> request)
     {
         try
         {
@@ -36,7 +36,7 @@ class FrontEndInputMapper
     }
 
     public <T extends FrontEndInput> Optional<T>
-    map(Class<T> type,HandleInputReply reply)
+    map(Class<T> type,HandleInputReply<?,?> reply)
     {
         try
         {

@@ -1,10 +1,9 @@
 wrapper.jarFile = ".gradle/wrapper/gradle-wrapper.jar"
 
 ext {
-    strata_foundation_version = "1.0-SNAPSHOT"
-    strata_server_version = "1.0-SNAPSHOT"
-    strata_client_version = "1.0-SNAPSHOT"
-    strata_outbox_version = "1.0-SNAPSHOT"
+    strata_foundation_version = "1.0.0"
+    strata_server_version = "1.0.0"
+    strata_client_version = "1.0.0"
 
     spring_version = "6.2.2"
     springboot_version = "3.4.1"
@@ -19,22 +18,19 @@ ext {
     junit_platform_version = "1.13.3"
 
     major = "1"
-    minor = "0"
-    patch = "SNAPSHOT"
-    separator1 = "."
-    separator2 = "-"
-
-    system_version = "$major$separator1$minor$separator2$patch"
+    minor = ".0"
+    patch = ".0-SNAPSHOT"
 }
 
 group 'strata.frontendcontroller'
-version "$system_version"
+version "$major$minor$patch"
 layout.buildDirectory.set(layout.projectDirectory.dir(".build"))
 
 subprojects {
     group 'strata.frontendcontroller'
-    version "$system_version"
-    layout.buildDirectory.set(layout.projectDirectory.dir(".build"))}
+    version "$major$minor$patch"
+    layout.buildDirectory.set(layout.projectDirectory.dir(".build"))
+}
 
 
 

@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id "com.google.cloud.tools.jib" version "3.4.2"
+    id "com.google.cloud.tools.jib" version "3.5.4"
 }
 
 sourceSets {
@@ -27,19 +27,24 @@ jib {
         }
     }
     to {
-        image = "registry.gitlab.com/guitar-center/gl_merchandising-technology/applicationsystems/strata-frontendcontroller-servicehost"
-        tags = ["${version}","latest"]
+        image = "ghcr.io/johnliebenau/strata/strata-frontendcontroller-servicehost"
         auth {
-            username = "oauth2"
-            password = "$System.env.GITLAB_TOKEN"
+            username = "$System.env.REPOSITORY_USER"
+            password = "$System.env.REPOSITORY_PASSWORD"
         }
     }
     container {
-        environment = [DEPLOY_ENV:"development",PROPERTIES_ENCRYPTION_KEY:""+"$System.env.PROPERTIES_ENCRYPTION_KEY"]
+        environment = [DEPLOY_ENV:"development"]
         jvmFlags = ["-Xmx1024m"]
         extraClasspath = [".build/libs/Strata.FrontEndController.ServiceHost-${version}.jar"]
         mainClass = "strata.frontendcontroller.servicehost.main.FrontEndControllerServiceHost"
         ports = ['8081']
         format = 'OCI'
     }
+}
+
+apply from: rootProject.file('gradle/strata-image.gradle')
+
+tasks.named('build') {
+    finalizedBy('jib')
 }
